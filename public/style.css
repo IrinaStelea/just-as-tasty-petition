@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: "Outfit", sans-serif;
+    font-family: "Albert Sans", sans-serif;
     background-color: lightgray;
     width: 100vw;
     height: 100vh;
@@ -16,7 +16,7 @@ body {
     color: indigo;
 }
 
-.petition {
+.container {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -63,4 +63,20 @@ body {
 #canvas {
     border: 1px dotted indigo;
     cursor: crosshair;
+}
+
+.error {
+    color: red;
+    font-style: italic;
+}
+
+.signer {
+    color: indianred;
+    font-style: italic;
+}
+
+#signers-count {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: indianred;
 }

@@ -8,10 +8,19 @@
     ctx.strokeStyle = "black";
     ctx.lineWidth = 2;
 
+    //get the canvas value on page load
+    const dataURLStart = canvas[0].toDataURL();
+    console.log("canvas value at start", dataURLStart);
+
     //get the position of the canvas relative to the webpage
-    let canvasOffset = canvas.offset();
-    let offsetX = canvasOffset.left;
-    let offsetY = canvasOffset.top;
+    // let canvasOffset = canvas.offset();
+    // let offsetX = canvasOffset.left;
+    // let offsetY = canvasOffset.top;
+
+    //get canvas position
+    let canvasPos = canvas[0].getBoundingClientRect();
+    let canvasPosX = canvasPos.left;
+    let canvasPosY = canvasPos.top;
 
     //get the mouse position -- as object
     let mouse = {
@@ -43,8 +52,8 @@
     //function to get the mouse's position
     function getMousePos(event) {
         return {
-            x: parseInt(event.clientX - offsetX),
-            y: parseInt(event.clientY - offsetY),
+            x: parseInt(event.clientX - canvasPosX),
+            y: parseInt(event.clientY - canvasPosY),
         };
     }
 
@@ -59,10 +68,10 @@
     }
 
     //submit button
-    let submit = $("#submit");
+    let form = $("#form");
     // console.log("submit button", submit);
 
-    submit.on("click", () => {
+    form.on("submit", (e) => {
         //get the value of the canvas on submit
         const dataURL = canvas[0].toDataURL();
         console.log("signature value", dataURL);

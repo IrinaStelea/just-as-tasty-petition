@@ -1,10 +1,10 @@
-<div class="petition">
+<div class="container">
     <h1>Sign my petition</h1>
     <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. At ex, aperiam
         quibusdam, iusto magnam inventore incidunt aliquam nostrum quisquam
         aspernatur, facere numquam accusantium vitae recusandae? Accusantium
         error cupiditate minima aspernatur?</p>
-
+    <p class="error">{{error.message}}</p>
     <form method="post" id="form">
         <div class="name-field">
             <label for="first">First name:</label>
@@ -12,7 +12,7 @@
             <label for="last">Last name:</label>
             <input type="text" value="" name="last" id="last" /></div>
         <div class="sign-canvas">
-            <canvas id="canvas" width="300" height="80"></canvas>
+            <canvas id="canvas" width="300" height="80">Sign here</canvas>
             <input type="hidden" id="signature" name="signature" value="" />
             <label for="signature">Sign here</label></div>
         <input id="submit" type="submit" value="Sign!" />

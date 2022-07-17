@@ -10,11 +10,16 @@ module.exports.getSigners = () => {
     return db.query(`SELECT * FROM signatures`);
 };
 
-module.exports.addSigner = (first, last, signature, signed_at) => {
+//get number of signers
+module.exports.getCount = () => {
+    return db.query(`SELECT COUNT(*) FROM signatures`);
+};
+
+module.exports.addSigner = (first, last, signature, date) => {
     return db.query(
         `
     INSERT INTO signatures(first, last, signature, signed_at) 
     VALUES ($1, $2, $3, $4)`,
-        [first, last, signature, signed_at]
+        [first, last, signature, date]
     );
 };
