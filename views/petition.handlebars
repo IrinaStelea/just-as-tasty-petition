@@ -12,9 +12,11 @@
             <label for="last">Last name:</label>
             <input type="text" value="" name="last" id="last" /></div>
         <div class="sign-canvas">
-            <canvas id="canvas" width="300" height="80">Sign here</canvas>
+            <canvas id="canvas"></canvas>
             <input type="hidden" id="signature" name="signature" value="" />
-            <label for="signature">Sign here</label></div>
+            <label id="sign-above" for="signature">Please sign above</label>
+        </div>
+        <button id="clear-signature">Clear signature</button>
         <input id="submit" type="submit" value="Sign!" />
     </form>
 </div>

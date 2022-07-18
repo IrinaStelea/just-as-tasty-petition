@@ -63,6 +63,16 @@ body {
 #canvas {
     border: 1px dotted indigo;
     cursor: crosshair;
+    width: 100%;
+}
+
+#canvas-signed {
+    border: 1px dotted indigo;
+}
+
+#sign-above {
+    font-style: italic;
+    font-size: 0.8em;
 }
 
 .error {
