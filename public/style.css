@@ -70,7 +70,7 @@ body {
     border: 1px dotted indigo;
 }
 
-#sign-above {
+.small-text {
     font-style: italic;
     font-size: 0.8em;
 }

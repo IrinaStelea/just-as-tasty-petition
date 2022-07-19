@@ -4,6 +4,7 @@ const db = require("./db.js");
 const hb = require("express-handlebars");
 const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
+const bcrypt = require("bcryptjs");
 
 // console.log("db in server", db);
 
@@ -30,14 +31,120 @@ app.use(express.urlencoded({ extended: false }));
 //serve the public folder
 app.use(express.static("./public"));
 
-//redirect users for every route they try to access if cookies don't exist
-app.get("*", (req, res, next) => {
-    console.log("saved cookie", req.session.signatureId);
-    if (req.session.signatureId === undefined && req.url !== "/petition") {
-        return res.redirect("/petition");
-    }
-    return next();
+app.get("/registration", (req, res) => {
+    res.render("registration", { title: "Join the cause" });
 });
+
+//POST req on the registration page
+app.post("/registration", (req, res) => {
+    //grab the info from the form
+    const data = req.body;
+    let error = {};
+    if (!data.first || !data.last || !data.email || !data.password) {
+        error.message = "Please complete all fields!";
+        return res.render("registration", {
+            title: "Please try again!",
+            error,
+        });
+    }
+
+    db.insertUser(data.first, data.last, data.email, data.password)
+        .then((results) => {
+            console.log("inserting new user worked");
+
+            //set the cookie session on the user id to keep track of login
+            const id = results.rows[0].id;
+            const firstName = results.rows[0].first;
+            req.session = {
+                id,
+                firstName,
+            };
+            // redirect to petition page
+            res.redirect("petition");
+        })
+        .catch((err) => {
+            console.log("error in adding new user", err);
+            error.message = "Something went wrong. Please try again!";
+            //to-do: basically the only error here would be duplicate email? what should happen in this case?
+            res.render("registration", { title: "Try again!", error });
+        });
+});
+
+app.get("/login", (req, res) => {
+    res.render("login", { title: "Login" });
+});
+
+//POST req on the login page
+app.post("/login", (req, res) => {
+    //grab the info from the form
+    const data = req.body;
+    let error = {};
+    if (!data.email || !data.password) {
+        error.message = "Please complete all fields!";
+        return res.render("login", {
+            title: "Please try again!",
+            error,
+        });
+    }
+
+    db.findUser(data.email)
+        .then((results) => {
+            console.log(
+                "user email exists, here is the entire info",
+                results.rows
+            );
+            let inputPass = data.password;
+            let regPass = results.rows[0].password;
+            //authenticate the user (TO DO: consider moving this password check to db.js)
+            return bcrypt
+                .compare(inputPass, regPass)
+                .then((result) => {
+                    if (result) {
+                        console.log("authentication successful");
+
+                        //set the cookie session on the user id to keep track of login
+                        const id = results.rows[0].id;
+                        const firstName = results.rows[0].first;
+                        req.session = {
+                            id,
+                            firstName,
+                        };
+
+                        //TO DO - check if signature exists already and redirect accordingly
+                    } else {
+                        console.log(
+                            "authentication failed. passwords don't match"
+                        );
+                        error.message = "Invalid email or password";
+                        return res.render("login", {
+                            title: "Please try again!",
+                            error,
+                        });
+                    }
+                })
+                .catch((err) => {
+                    console.log("error bcrypt compare", err);
+                });
+        })
+        .catch((err) => {
+            console.log("error in finding user in the database", err);
+            error.message = "Invalid email or password";
+            return res.render("login", {
+                title: "Please try again!",
+                error,
+            });
+        });
+});
+
+//redirect users for every route they try to access if cookies don't exist
+//TO UPDATE
+// app.get("*", (req, res, next) => {
+//     // console.log("saved cookie", req.session.signatureId);
+//     if (req.session.signatureId === undefined && req.url !== "/petition") {
+//         return res.redirect("/petition");
+//     }
+//     return next();
+// });
 
 //redirect root address to petition
 app.get("/", (req, res) => {
@@ -47,10 +154,11 @@ app.get("/", (req, res) => {
 });
 
 app.get("/petition", (req, res) => {
+    //TO UPDATE
     //eliminate users who have signed
-    if (req.session.signatureId) {
-        return res.redirect("/thank-you");
-    }
+    // if (req.session.signatureId) {
+    //     return res.redirect("/thank-you");
+    // }
     res.render("petition", {
         title: "Sign my petition",
     });
