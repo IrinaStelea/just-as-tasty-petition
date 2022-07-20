@@ -6,11 +6,7 @@
         error cupiditate minima aspernatur?</p>
     <p class="error">{{error.message}}</p>
     <form method="post" id="form">
-        <div class="name-field">
-            <label for="first">First name:</label>
-            <input type="text" value="" name="first" id="first" />
-            <label for="last">Last name:</label>
-            <input type="text" value="" name="last" id="last" /></div>
+
         <div class="sign-canvas">
             <canvas id="canvas"></canvas>
             <input type="hidden" id="signature" name="signature" value="" />
@@ -19,4 +15,6 @@
         <button id="clear-signature">Clear signature</button>
         <input id="submit" type="submit" value="Sign!" />
     </form>
+    <hr />
+    <p class="small-text"><a href="./logout">Logout</a></p>
 </div>

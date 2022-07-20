@@ -30,7 +30,7 @@
         canvasOffset = canvas.offset();
         offsetX = canvasOffset.left;
         offsetY = canvasOffset.top;
-        // dataURL = null;
+        dataURL = null;
     });
 
     //get the canvas value on page load

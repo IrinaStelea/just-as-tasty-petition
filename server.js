@@ -5,6 +5,7 @@ const hb = require("express-handlebars");
 const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
+const helpers = require("./helpers.js");
 
 // console.log("db in server", db);
 
@@ -31,11 +32,35 @@ app.use(express.urlencoded({ extended: false }));
 //serve the public folder
 app.use(express.static("./public"));
 
-app.get("/registration", (req, res) => {
-    res.render("registration", { title: "Join the cause" });
+//all routes
+app.get("*", (req, res, next) => {
+    // console.log("saved cookie", req.session.userId);
+    //redirect to registration if not logged in
+    if (
+        req.session.id === undefined &&
+        req.url !== "/registration" &&
+        req.url !== "/login"
+    ) {
+        return res.redirect("/registration");
+    }
+
+    return next();
 });
 
-//POST req on the registration page
+//redirect root address to registration
+app.get("/", (req, res) => {
+    // console.log("get request to / route just happened");
+    res.redirect("/registration");
+});
+
+//GET registration
+app.get("/registration", (req, res) => {
+    if (!req.session.id) {
+        res.render("registration", { title: "Join the cause" });
+    }
+});
+
+//POST - registration
 app.post("/registration", (req, res) => {
     //grab the info from the form
     const data = req.body;
@@ -48,7 +73,10 @@ app.post("/registration", (req, res) => {
         });
     }
 
-    db.insertUser(data.first, data.last, data.email, data.password)
+    let capFirst = helpers.capitalize(data.first);
+    let capLast = helpers.capitalize(data.last);
+
+    db.insertUser(capFirst, capLast, data.email, data.password)
         .then((results) => {
             console.log("inserting new user worked");
 
@@ -58,23 +86,30 @@ app.post("/registration", (req, res) => {
             req.session = {
                 id,
                 firstName,
+                signed: false,
             };
+            console.log("user id cookie assigned", req.session.id);
             // redirect to petition page
-            res.redirect("petition");
+            res.redirect("profile");
         })
         .catch((err) => {
             console.log("error in adding new user", err);
             error.message = "Something went wrong. Please try again!";
-            //to-do: basically the only error here would be duplicate email? what should happen in this case?
+            //TO DO: basically the only error here would be duplicate email? what should happen in this case?
             res.render("registration", { title: "Try again!", error });
         });
 });
 
+//GET - login
 app.get("/login", (req, res) => {
-    res.render("login", { title: "Login" });
+    if (!req.session.id) {
+        res.render("login", { title: "Login to join the cause" });
+    } else {
+        res.redirect("/petition");
+    }
 });
 
-//POST req on the login page
+//POST - login
 app.post("/login", (req, res) => {
     //grab the info from the form
     const data = req.body;
@@ -109,8 +144,30 @@ app.post("/login", (req, res) => {
                             id,
                             firstName,
                         };
+                        console.log("user id cookie assigned", req.session.id);
 
-                        //TO DO - check if signature exists already and redirect accordingly
+                        //check if user has signed already and redirect to petition page
+
+                        // res.redirect("petition");
+                        db.getSignature(id)
+                            .then((results) => {
+                                if (results.rows[0]) {
+                                    console.log(
+                                        "user has already signed"
+                                        // results.rows[0]
+                                    );
+                                    //set cookie to keep track of signing
+                                    req.session.signed = true;
+                                    return res.redirect("thank-you");
+                                } else {
+                                    req.session.signed = false;
+                                    return res.redirect("petition");
+                                }
+                            })
+                            .catch((err) => {
+                                console.log("error in getSignature", err);
+                                res.sendStatus(500);
+                            });
                     } else {
                         console.log(
                             "authentication failed. passwords don't match"
@@ -136,61 +193,98 @@ app.post("/login", (req, res) => {
         });
 });
 
-//redirect users for every route they try to access if cookies don't exist
-//TO UPDATE
-// app.get("*", (req, res, next) => {
-//     // console.log("saved cookie", req.session.signatureId);
-//     if (req.session.signatureId === undefined && req.url !== "/petition") {
-//         return res.redirect("/petition");
-//     }
-//     return next();
-// });
-
-//redirect root address to petition
-app.get("/", (req, res) => {
-    // console.log("get request to / route just happened");
-    //redirect to my main petition page
-    res.redirect("/petition");
-});
-
-app.get("/petition", (req, res) => {
-    //TO UPDATE
-    //eliminate users who have signed
-    // if (req.session.signatureId) {
-    //     return res.redirect("/thank-you");
-    // }
-    res.render("petition", {
-        title: "Sign my petition",
+//GET - profile
+app.get("/profile", (req, res) => {
+    res.render("profile", {
+        title: "Profile",
+        firstName: req.session.firstName,
     });
 });
 
-//handle the post request for when users sign the petition
+//POST - profile
+app.post("/profile", (req, res) => {
+    const data = req.body;
+    let error = {};
+
+    const userId = req.session.id;
+
+    //check that the age is a number
+    if (data.age && isNaN(data.age)) {
+        error.message = "Please provide a valid age!";
+        return res.render("profile", {
+            title: "Please try again!",
+            error,
+            firstName: req.session.firstName,
+        });
+    }
+
+    //check that the homepage input is a valid url
+    if (data.url && !data.url.startsWith("http")) {
+        error.message = "Please provide a valid homepage!";
+        return res.render("profile", {
+            title: "Please try again!",
+            error,
+            firstName: req.session.firstName,
+        });
+    }
+
+    //capitalise the city name
+    let capCity = helpers.capitalize(data.city);
+
+    if (data.age || data.url || data.city) {
+        db.insertProfile(data.url, capCity, data.age, userId)
+            .then((results) => {
+                console.log(
+                    "inserting new profile worked, here are the results",
+                    results.rows
+                );
+
+                // redirect to petition page
+                return res.redirect("petition");
+            })
+            .catch((err) => {
+                console.log("error in adding new profile", err);
+                error.message = "Something went wrong. Please try again!";
+                res.render("profile", {
+                    title: "Please try again!",
+                    error,
+                    firstName: req.session.firstName,
+                });
+            });
+    } else {
+        res.redirect("petition");
+    }
+});
+
+//GET - petition
+app.get("/petition", (req, res) => {
+    if (req.session.signed == false) {
+        res.render("petition", {
+            title: "Sign the petition",
+        });
+    } else {
+        return res.redirect("/thank-you");
+    }
+});
+
+//POST - petition
 app.post("/petition", (req, res) => {
     //grab the info from the form
     const data = req.body;
-    // console.log("signer data", data);
-    //format the date sent to the database
-    const date = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-    db.addSigner(data.first, data.last, data.signature, date)
+    const userId = req.session.id;
+
+    db.addSigner(userId, data.signature)
         .then((results) => {
-            console.log(
-                "addSigner worked",
-                "id of current entry",
-                results.rows[0].id
-            );
-            //set the cookie - previous version
-            // res.cookie("signed", 1);
-            //set the cookie session - current version
-            const id = results.rows[0].id;
-            req.session.signatureId = id;
+            console.log("addSigner worked, here is the id", results.rows[0].id);
+            req.session.signed = true;
             //redirect if successful
             res.redirect("/thank-you");
         })
         .catch((err) => {
             console.log("error in adding signer", err);
             const error = {
-                message: "Please complete all fields!",
+                message: "Please submit your signature!",
             };
             //re-render the page with an error message on the client side
             //note that this time no slash is necessary bc I'm already in /petition page (otherwise it would throw a render error)
@@ -198,51 +292,65 @@ app.post("/petition", (req, res) => {
         });
 });
 
-//serve the thank you page
+//GET - thank you
 app.get("/thank-you", (req, res) => {
-    db.getSigners()
-        .then((results) => {
-            // console.log("count", results.rows);
-            const nbSigners = results.rowCount;
-            // console.log("date", date);
+    if (req.session.signed == true) {
+        db.getSigners()
+            .then((results) => {
+                // console.log("count", results.rows);
+                const nbSigners = results.rowCount;
+                // console.log("date", date);
 
-            db.getSignature(req.session.signatureId)
-                .then((results) => {
-                    // console.log("results of get signature", results);
-                    const signature = results.rows[0].signature;
-                    res.render("thankyou", {
-                        title: "Thank you for signing",
-                        count: nbSigners,
-                        signature,
+                db.getSignature(req.session.id)
+                    .then((results) => {
+                        // console.log("results of get signature", results);
+                        const signature = results.rows[0].signature;
+                        res.render("thankyou", {
+                            title: "Thank you for signing",
+                            count: nbSigners,
+                            signature,
+                            firstName: req.session.firstName,
+                        });
+                    })
+                    .catch((err) => {
+                        console.log("error in getSignature", err);
+                        res.sendStatus(500);
                     });
-                })
-                .catch((err) => {
-                    console.log("error in getSignature", err);
-                    res.sendStatus(500);
-                });
-        })
-        .catch((err) => {
-            console.log("error in getCount", err);
-            res.sendStatus(500);
-        });
+            })
+            .catch((err) => {
+                console.log("error in getCount", err);
+                res.sendStatus(500);
+            });
+    } else {
+        return res.redirect("/petition");
+    }
 });
 
-//serve the signers page
+//GET - signers
 app.get("/signers", (req, res) => {
-    db.getSigners()
-        .then((results) => {
-            // console.log("signers of the petition", results.rows);
-            //signers as array of objects
-            const signers = results.rows;
-            res.render("signers", {
-                title: "Signers of petition",
-                signers,
+    if (req.session.signed == true) {
+        db.getSigners()
+            .then((results) => {
+                console.log("signers of the petition", results.rows);
+                const signers = results.rows;
+                res.render("signers", {
+                    title: "Signers of petition",
+                    signers,
+                });
+            })
+            .catch((err) => {
+                console.log("error in getSigners", err);
+                res.sendStatus(500);
             });
-        })
-        .catch((err) => {
-            console.log("error in getSigners", err);
-            res.sendStatus(500);
-        });
+    } else {
+        return res.redirect("/petition");
+    }
+});
+
+//GET - logout
+app.get("/logout", (req, res) => {
+    req.session = null;
+    return res.redirect("/login");
 });
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));

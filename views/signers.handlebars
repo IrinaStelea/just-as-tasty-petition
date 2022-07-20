@@ -2,6 +2,11 @@
     <h1>Fellow signers</h1>
     <p>The petition was signed by:</p>
     {{#signers}}
-        <p class="signer">{{first}} {{last}}</p>
+        <p class="signer">{{#if url}}<a href="{{url}}">{{first}}
+                    {{last}}</a>{{else}}{{first}} {{last}}{{/if}}
+            {{age}}
+            {{city}}</p>
     {{/signers}}
+    <hr />
+    <p class="small-text"><a href="./logout">Logout</a></p>
 </div>

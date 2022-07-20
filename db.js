@@ -42,30 +42,43 @@ module.exports.insertUser = (first, last, email, password) => {
     });
 };
 
+//profile
+module.exports.insertProfile = (url, city, age, userId) => {
+    return db.query(
+        `
+    INSERT INTO profiles(url, city, age, user_id) 
+    VALUES ($1, $2, $3, $4)`,
+        [url, city, age || null, userId]
+    );
+};
+
 //login function
 module.exports.findUser = (email) => {
     return db.query(`SELECT * FROM users WHERE email = '${email}'`);
 };
 
-//login
-// module.exports.authenticate = (email, password) {
-//     return db.query(`SELECT password from users WHERE email = ${email}`);
-// }
-
 module.exports.getSigners = () => {
-    return db.query(`SELECT * FROM signatures`);
+    // return db.query(`SELECT * FROM signatures`);
+
+    return db.query(
+        `SELECT * from users LEFT OUTER JOIN signatures ON users.id = signatures.user_id LEFT OUTER JOIN profiles ON users.id = profiles.user_id WHERE signatures.signature IS NOT NULL`
+    );
+    // - join on profiles
+    // - join on signatures
+    // WHERE clause for the city pages
+    // ).then(({rows}) => rows.map(({first, last}) => ({} //throw away all the users that do not have a connected signature)
 };
 
 module.exports.getSignature = (id) => {
-    return db.query(`SELECT signature FROM signatures WHERE id = '${id}'`);
+    return db.query(`SELECT signature FROM signatures WHERE user_id = '${id}'`);
 };
 
 //add returning statement to get the id of the current entry as result of this function
-module.exports.addSigner = (first, last, signature, date) => {
+module.exports.addSigner = (userId, signature) => {
     return db.query(
         `
-    INSERT INTO signatures(first, last, signature, signed_at) 
-    VALUES ($1, $2, $3, $4) RETURNING id`,
-        [first, last, signature, date]
+    INSERT INTO signatures(user_id, signature) 
+    VALUES ($1, $2) RETURNING id`,
+        [userId, signature]
     );
 };
