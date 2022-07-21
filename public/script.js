@@ -1,8 +1,9 @@
 (function () {
-    //make sure the script only works on the petition page (no error about canvas context on the other pages)
-    if (!document.querySelector("#form")) {
-        return;
-    }
+    //FUTURE REFERENCE: make sure the script only works on the petition page (no error about canvas context on the other pages)
+    // if (!document.querySelector("#form")) {
+    //     return;
+    // }
+
     //responsive canvas size
     let canvas = $("canvas");
     canvas[0].height = window.innerWidth * 0.1;

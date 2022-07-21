@@ -42,6 +42,14 @@ body {
     gap: 1vw;
 }
 
+.profile {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: flex-start;
+    justify-items: end;
+    gap: 1vw;
+}
+
 #submit {
     background-color: indianred;
     padding: 1vw;

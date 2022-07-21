@@ -1,13 +1,13 @@
 <main>
     <div class="container">
-        <h1>Fellow signers</h1>
+        <h1>Signers from {{city}}</h1>
         <p>The petition was signed by:</p>
-        {{#signers}}
+        {{#signersByCity}}
             <p class="signer">{{#if url}}<a href="{{url}}">{{first}}
                         {{last}}</a>{{else}}{{first}} {{last}}{{/if}}
                 {{age}}
-                {{#if city}}<a href="/signers/{{city}}">{{city}}</a>{{/if}}</p>
-        {{/signers}}
+            </p>
+        {{/signersByCity}}
         <hr />
         <p class="small-text"><a href="./logout">Logout</a></p>
     </div>

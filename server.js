@@ -73,10 +73,12 @@ app.post("/registration", (req, res) => {
         });
     }
 
-    let capFirst = helpers.capitalize(data.first);
-    let capLast = helpers.capitalize(data.last);
+    let cleanFirst = helpers.cleanString(data.first);
+    let cleanLast = helpers.cleanString(data.last);
+    let cleanEmail = data.email;
+    cleanEmail = cleanEmail.toLowerCase();
 
-    db.insertUser(capFirst, capLast, data.email, data.password)
+    db.insertUser(cleanFirst, cleanLast, cleanEmail, data.password)
         .then((results) => {
             console.log("inserting new user worked");
 
@@ -122,7 +124,10 @@ app.post("/login", (req, res) => {
         });
     }
 
-    db.findUser(data.email)
+    let cleanEmail = data.email;
+    cleanEmail = cleanEmail.toLowerCase();
+
+    db.findUser(cleanEmail)
         .then((results) => {
             console.log(
                 "user email exists, here is the entire info",
@@ -217,6 +222,12 @@ app.post("/profile", (req, res) => {
             firstName: req.session.firstName,
         });
     }
+    //url to lowercase
+    let cleanUrl;
+    if (data.url) {
+        cleanUrl = data.url;
+        cleanUrl = cleanUrl.toLowerCase();
+    }
 
     //check that the homepage input is a valid url
     if (data.url && !data.url.startsWith("http")) {
@@ -229,10 +240,13 @@ app.post("/profile", (req, res) => {
     }
 
     //capitalise the city name
-    let capCity = helpers.capitalize(data.city);
+    let cleanCity;
+    if (data.city) {
+        cleanCity = helpers.cleanString(data.city);
+    }
 
     if (data.age || data.url || data.city) {
-        db.insertProfile(data.url, capCity, data.age, userId)
+        db.insertProfile(cleanUrl, cleanCity, data.age, userId)
             .then((results) => {
                 console.log(
                     "inserting new profile worked, here are the results",
@@ -254,6 +268,200 @@ app.post("/profile", (req, res) => {
     } else {
         res.redirect("petition");
     }
+});
+
+//GET - edit profile
+app.get("/edit-profile", (req, res) => {
+    db.getProfile(req.session.id)
+        .then((results) => {
+            console.log("results of get profile", results.rows);
+            let signer = results.rows[0];
+            res.render("editProfile", {
+                title: "Edit my profile",
+                first: signer.first,
+                last: signer.last,
+                age: signer.age,
+                city: signer.city,
+                email: signer.email,
+                url: signer.url,
+            });
+        })
+        .catch((err) => {
+            console.log("error in getProfile", err);
+            res.sendStatus(500);
+        });
+});
+
+//POST - edit profile
+app.post("/edit-profile", (req, res) => {
+    const data = req.body;
+    let error = {};
+
+    //check that first, last, email are not empty - TO DO: make customised errors
+    if (!data.first || !data.last || !data.email) {
+        error.message =
+            "Please provide your first & last name and email address!";
+        return res.render("edit-profile", {
+            title: "Please try again!",
+            error,
+            first: data.first,
+            last: data.last,
+            age: data.age,
+            city: data.city,
+            email: data.email,
+            url: data.url,
+        });
+    }
+
+    //sanitise first, last, email
+    let cleanFirst = helpers.cleanString(data.first);
+    let cleanLast = helpers.cleanString(data.last);
+    let cleanEmail = data.email;
+    cleanEmail = cleanEmail.toLowerCase();
+
+    //sanitise profile info
+    //check that the age is a number
+    if (data.age && isNaN(data.age)) {
+        error.message = "Please provide a valid age!";
+        return res.render("edit-profile", {
+            title: "Please try again!",
+            error,
+            first: data.first,
+            last: data.last,
+            city: data.city,
+            email: data.email,
+            url: data.url,
+        });
+    }
+
+    //url to lowercase
+    let cleanUrl;
+    if (data.url) {
+        cleanUrl = data.url;
+        cleanUrl = cleanUrl.toLowerCase();
+    }
+
+    //check that the homepage input is a valid url
+    if (data.url && !data.url.startsWith("http")) {
+        error.message = "Please provide a valid homepage!";
+        return res.render("edit-profile", {
+            title: "Please try again!",
+            error,
+            first: data.first,
+            last: data.last,
+            age: data.age,
+            city: data.city,
+            email: data.email,
+        });
+    }
+
+    //capitalise the city name
+    let cleanCity;
+    if (data.city) {
+        cleanCity = helpers.cleanString(data.city);
+    }
+
+    const userId = req.session.id;
+
+    let userUpdatePromise;
+
+    if (data.password) {
+        userUpdatePromise = db.updateUserWithPassword(
+            userId,
+            cleanFirst,
+            cleanLast,
+            cleanEmail,
+            data.password
+        );
+    } else {
+        userUpdatePromise = db.updateUserWithoutPassword(
+            userId,
+            cleanFirst,
+            cleanLast,
+            cleanEmail
+        );
+    }
+
+    let userProfilePromise = db.updateProfile(
+        cleanUrl,
+        cleanCity,
+        data.age,
+        userId
+    );
+
+    const allPromises = Promise.all([userUpdatePromise, userProfilePromise]);
+
+    allPromises
+        .then((results) => {
+            console.log("update all-in-1 worked", results);
+            return res.redirect("petition");
+        })
+        .catch((error) => {
+            console.log("error in all-1-update", error);
+            error.message = "Something went wrong. Please try again!";
+            res.render("edit-profile", {
+                title: "Please try again!",
+                error,
+                first: data.first,
+                last: data.last,
+                age: data.age,
+                city: data.city,
+                email: data.email,
+                url: data.url,
+            });
+        });
+
+    // //update USERS information
+    // db.updateUserWithPassword(
+    //     userId,
+    //     cleanFirst,
+    //     cleanLast,
+    //     cleanEmail,
+    //     data.password
+    // )
+    //     .then((results) => {
+    //         console.log("updating user profile worked");
+    //         // redirect to petition page
+    //         return res.redirect("petition");
+    //     })
+    //     .catch((err) => {
+    //         console.log("error in updating primary info profile", err);
+    //         error.message = "Something went wrong. Please try again!";
+    //         res.render("edit-profile", {
+    //             title: "Please try again!",
+    //             error,
+    //             first: data.first,
+    //             last: data.last,
+    //             age: data.age,
+    //             city: data.city,
+    //             email: data.email,
+    //             url: data.url,
+    //         });
+    //     });
+
+    // //update profile information
+
+    // db.updateProfile(cleanUrl, cleanCity, data.age, userId)
+    //     .then((results) => {
+    //         console.log("updating profile worked");
+
+    //         // redirect to petition page
+    //         return res.redirect("petition");
+    //     })
+    //     .catch((err) => {
+    //         console.log("error in updating secondary info profile", err);
+    //         error.message = "Something went wrong. Please try again!";
+    //         res.render("edit-profile", {
+    //             title: "Please try again!",
+    //             error,
+    //             first: data.first,
+    //             last: data.last,
+    //             age: data.age,
+    //             city: data.city,
+    //             email: data.email,
+    //             url: data.url,
+    //         });
+    //     });
 });
 
 //GET - petition
@@ -331,7 +539,7 @@ app.get("/signers", (req, res) => {
     if (req.session.signed == true) {
         db.getSigners()
             .then((results) => {
-                console.log("signers of the petition", results.rows);
+                // console.log("signers of the petition", results.rows);
                 const signers = results.rows;
                 res.render("signers", {
                     title: "Signers of petition",
@@ -345,6 +553,28 @@ app.get("/signers", (req, res) => {
     } else {
         return res.redirect("/petition");
     }
+});
+
+//GET - signers by city (dynamic route)
+app.get("/signers/:city", (req, res) => {
+    const { city } = req.params;
+    console.log("city url", req.params.city);
+
+    db.getSignersByCity(city)
+        .then((results) => {
+            console.log("these are the signers by city", results.rows);
+            let signersByCity = results.rows;
+
+            res.render("signersCity", {
+                title: `Signers from ${city}`,
+                signersByCity,
+                city,
+            });
+        })
+        .catch((err) => {
+            console.log("error in getSignersByCIty", err);
+            res.sendStatus(500);
+        });
 });
 
 //GET - logout

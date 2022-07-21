@@ -1,11 +1,18 @@
-<div class="container">
-    <h1>Thank you for signing, {{firstName}}!</h1>
-    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. At ex, aperiam
-        quibusdam, iusto magnam inventore incidunt aliquam nostrum quisquam
-        aspernatur, facere numquam accusantium vitae recusandae? Accusantium
-        error cupiditate minima aspernatur?</p>
-    <img src="{{signature}}" id="canvas-signed" alt="here is your signature" />
-    <a id="signers-count" href="signers">See all {{count}} signers</a>
-    <hr />
-    <p class="small-text"><a href="./logout">Logout</a></p>
-</div>
+<main>
+    <div class="container">
+        <h1>Thank you for signing, {{firstName}}!</h1>
+        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. At ex,
+            aperiam quibusdam, iusto magnam inventore incidunt aliquam nostrum
+            quisquam aspernatur, facere numquam accusantium vitae recusandae?
+            Accusantium error cupiditate minima aspernatur?</p>
+        <img
+            src="{{signature}}"
+            id="canvas-signed"
+            alt="here is your signature"
+        />
+        <a id="signers-count" href="signers">See all {{count}} signers</a>
+        <hr />
+        <p><a href="./edit-profile">Edit profile</a></p>
+        <p class="small-text"><a href="./logout">Logout</a></p>
+    </div>
+</main>

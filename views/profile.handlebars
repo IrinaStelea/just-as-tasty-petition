@@ -1,18 +1,20 @@
-<div class="container">
-    <h1>Let's get to know you, {{firstName}}!</h1>
-    <p>Tell us a bit about yourself:</p>
-    <p class="error">{{error.message}}</p>
-    <form method="post" id="form">
-        <div class="name-field">
-            <label for="age">Age:</label>
-            <input type="number" name="age" id="age" min="16" max="99" />
-            <label for="city">City:</label>
-            <input type="text" value="" name="city" id="city" />
-            <label for="url">Homepage:</label>
-            <input type="url" value="" name="url" id="url" />
-        </div>
-        <input id="submit" type="submit" value="Continue" />
-    </form>
-    <hr />
-    <p class="small-text"><a href="./logout">Logout</a></p>
-</div>
+<main>
+    <div class="container">
+        <h1>Let's get to know you, {{firstName}}!</h1>
+        <p>Tell us a bit about yourself:</p>
+        <p class="error">{{error.message}}</p>
+        <form method="post" id="form">
+            <div class="name-field">
+                <label for="age">Age:</label>
+                <input type="number" name="age" id="age" min="16" max="99" />
+                <label for="city">City:</label>
+                <input type="text" value="" name="city" id="city" />
+                <label for="url">Homepage:</label>
+                <input type="url" value="" name="url" id="url" />
+            </div>
+            <input id="submit" type="submit" value="Continue" />
+        </form>
+        <hr />
+        <p class="small-text"><a href="./logout">Logout</a></p>
+    </div>
+</main>

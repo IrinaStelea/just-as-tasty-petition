@@ -1,0 +1,70 @@
+<main>
+    <div class="container">
+        <h1>Edit your profile</h1>
+        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. At ex,
+            aperiam quibusdam, iusto magnam inventore incidunt aliquam nostrum
+            quisquam aspernatur, facere numquam accusantium vitae recusandae?
+            Accusantium error cupiditate minima aspernatur?</p>
+        <p class="error">{{error.message}}</p>
+        <form method="post" id="form">
+            <div class="name-field">
+                <div class="profile">
+                    <label for="first">First name:</label>
+                    <input
+                        type="text"
+                        value="{{first}}"
+                        name="first"
+                        id="first"
+                    /></div>
+                <div class="profile"><label for="age">Age:</label>
+                    <input
+                        type="number"
+                        name="age"
+                        id="age"
+                        min="16"
+                        max="99"
+                        value="{{age}}"
+                    /></div>
+                <div class="profile"><label for="last">Last name:</label>
+                    <input
+                        type="text"
+                        value="{{last}}"
+                        name="last"
+                        id="last"
+                    /></div>
+                <div class="profile"><label for="city">City:</label>
+                    <input
+                        type="text"
+                        value="{{city}}"
+                        name="city"
+                        id="city"
+                    /></div>
+                <div class="profile">
+                    <label for="email">Email:</label>
+                    <input
+                        type="email"
+                        value="{{email}}"
+                        name="email"
+                        id="email"
+                    /></div>
+                <div class="profile"><label for="url">Homepage:</label>
+                    <input
+                        type="url"
+                        value="{{url}}"
+                        name="url"
+                        id="url"
+                    /></div>
+                <div class="profile"><label for="password">Password:</label>
+                    <input
+                        type="password"
+                        value=""
+                        name="password"
+                        id="password"
+                    /></div></div>
+
+            <input id="submit" type="submit" value="Update" />
+        </form>
+        <hr />
+        <p class="small-text"><a href="./logout">Logout</a></p>
+    </div>
+</main>

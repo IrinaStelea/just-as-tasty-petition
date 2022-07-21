@@ -1,20 +1,29 @@
-<div class="container">
-    <h1>Sign my petition</h1>
-    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. At ex, aperiam
-        quibusdam, iusto magnam inventore incidunt aliquam nostrum quisquam
-        aspernatur, facere numquam accusantium vitae recusandae? Accusantium
-        error cupiditate minima aspernatur?</p>
-    <p class="error">{{error.message}}</p>
-    <form method="post" id="form">
+<main>
+    <div class="container">
+        <h1>Sign my petition</h1>
+        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. At ex,
+            aperiam quibusdam, iusto magnam inventore incidunt aliquam nostrum
+            quisquam aspernatur, facere numquam accusantium vitae recusandae?
+            Accusantium error cupiditate minima aspernatur?</p>
+        <p class="error">{{error.message}}</p>
+        <form method="post" id="form">
 
-        <div class="sign-canvas">
-            <canvas id="canvas"></canvas>
-            <input type="hidden" id="signature" name="signature" value="" />
-            <label class="small-text" for="signature">Please sign above</label>
-        </div>
-        <button id="clear-signature">Clear signature</button>
-        <input id="submit" type="submit" value="Sign!" />
-    </form>
-    <hr />
-    <p class="small-text"><a href="./logout">Logout</a></p>
-</div>
+            <div class="sign-canvas">
+                <canvas id="canvas"></canvas>
+                <input type="hidden" id="signature" name="signature" value="" />
+                <label class="small-text" for="signature">Please sign above</label>
+            </div>
+            <button id="clear-signature">Clear signature</button>
+            <input id="submit" type="submit" value="Sign!" />
+        </form>
+        <hr />
+        <p><a href="./edit-profile">Edit profile</a></p>
+        <p class="small-text"><a href="./logout">Logout</a></p>
+    </div>
+</main>
+<script
+    src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+    crossorigin="anonymous"
+></script>
+<script src="script.js"></script>
