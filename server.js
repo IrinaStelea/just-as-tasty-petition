@@ -534,7 +534,9 @@ app.get("/signers", (req, res) => {
                     signers,
                     helpers: {
                         cityHyphen(city) {
-                            return city.replaceAll(" ", "-");
+                            if (city) {
+                                return city.replaceAll(" ", "-");
+                            }
                         },
                     },
                 });
