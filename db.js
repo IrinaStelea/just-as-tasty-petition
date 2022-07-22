@@ -1,11 +1,23 @@
+let databaseUrl;
+if (process.env.NODE_ENV === "production") {
+    databaseUrl = process.env.DATABASE_URL;
+} else {
+    const {
+        DB_USER,
+        DB_PASSWORD,
+        DB_HOST,
+        DB_PORT,
+        DB_NAME,
+    } = require("./secrets.json");
+    databaseUrl = `postgres:${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+}
+
 const spicedPg = require("spiced-pg");
-const username = "postgres";
-const password = "postgres";
-const database = "petition"; //this is the database
+// const username = "postgres";
+// const password = "postgres";
+// const database = "petition"; //this is the database
 const bcrypt = require("bcryptjs");
-const db = spicedPg(
-    `postgres:${username}:${password}@localhost:5432/${database}`
-);
+const db = spicedPg(databaseUrl);
 
 //function for hashing the password; important to return in first row otherwise it won't work!
 function hashPassword(pass) {
@@ -106,10 +118,10 @@ module.exports.getSigners = () => {
     );
 };
 
-module.exports.getSignersByCity = (city) => {
+module.exports.getSignersByCity = (city = null) => {
     return db.query(
         `SELECT * from users LEFT OUTER JOIN signatures ON users.id = signatures.user_id LEFT OUTER JOIN profiles ON users.id = profiles.user_id WHERE signatures.signature IS NOT NULL AND LOWER(profiles.city) = LOWER($1)`,
-        [city]
+        [city || null]
     );
     // - join on signatures
     // - join on profiles
@@ -130,4 +142,13 @@ module.exports.addSigner = (userId, signature) => {
     VALUES ($1, $2) RETURNING id`,
         [userId, signature]
     );
+};
+
+module.exports.deleteSignature = (userId) => {
+    return db.query(`DELETE FROM signatures WHERE user_id=${userId}`);
+};
+
+module.exports.deleteAccount = (userId) => {
+    //this will delete the info from all three tables because I added a constraint to cascade delete
+    return db.query(`DELETE FROM users WHERE id=${userId}`);
 };

@@ -9,17 +9,18 @@
         <form method="post" id="form">
             <div class="name-field">
                 <label for="first">First name:</label>
-                <input type="text" value="" name="first" id="first" />
+                <input type="text" value="{{first}}" name="first" id="first" />
                 <label for="last">Last name:</label>
-                <input type="text" value="" name="last" id="last" />
+                <input type="text" value="{{last}}" name="last" id="last" />
                 <label for="email">Email:</label>
-                <input type="email" value="" name="email" id="email" />
-                <label for="password">Set a password:</label>
+                <input type="email" value="{{email}}" name="email" id="email" />
+                <label for="password">Password (min 6 characters):</label>
                 <input
                     type="password"
                     value=""
                     name="password"
                     id="password"
+                    minlength="6"
                 /></div>
             <input id="submit" type="submit" value="Sign up" />
         </form>

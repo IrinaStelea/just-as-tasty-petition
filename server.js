@@ -9,17 +9,49 @@ const helpers = require("./helpers.js");
 
 // console.log("db in server", db);
 
-const PORT = 8080;
+const COOKIE_SECRET =
+    process.env.COOKIE_SECRET || require("./secrets.json").COOKIE_SECRET;
+// const PORT = process.env.PORT || 8080;
+let port;
+let host;
+
+if (process.env.NODE_ENV === "production") {
+    host = "0.0.0.0";
+    port = process.env.PORT;
+} else {
+    host = "localhost";
+    port = 8080;
+}
+
+// //local port
+// const host = "localhost";
+// const port = 8080;
+
+// //heroku port
+// const host = "0.0.0.0";
+// const port = process.env.PORT || 8080;
+
+// const PORT = 8080;
 
 //handlebars config
 app.engine("handlebars", hb.engine());
 app.set("view engine", "handlebars");
 
+//https middleware
+// if (process.env.NODE_ENV == "production") {
+//     app.use((req, res, next) => {
+//         if (req.headers["x-forwarded-proto"].startsWith("https")) {
+//             return next();
+//         }
+//         res.redirect(`https://${req.hostname}${req.url}`);
+//     });
+// }
+
 //cookie session middleware
 app.use(
     cookieSession({
-        secret: `Soylent Green is people.`, //used to generate the 2nd cookie used to verify the integrity of 1st cookie
-        maxAge: 1000 * 60 * 60 * 24 * 14, //two weeks
+        secret: COOKIE_SECRET, //used to generate the 2nd cookie used to verify the integrity of 1st cookie
+        maxAge: 1000 * 60 * 60 * 24 * 14,
     })
 );
 
@@ -70,6 +102,9 @@ app.post("/registration", (req, res) => {
         return res.render("registration", {
             title: "Please try again!",
             error,
+            first: data.first,
+            last: data.last,
+            email: data.email,
         });
     }
 
@@ -301,7 +336,7 @@ app.post("/edit-profile", (req, res) => {
     if (!data.first || !data.last || !data.email) {
         error.message =
             "Please provide your first & last name and email address!";
-        return res.render("edit-profile", {
+        return res.render("editProfile", {
             title: "Please try again!",
             error,
             first: data.first,
@@ -311,40 +346,12 @@ app.post("/edit-profile", (req, res) => {
             email: data.email,
             url: data.url,
         });
-    }
-
-    //sanitise first, last, email
-    let cleanFirst = helpers.cleanString(data.first);
-    let cleanLast = helpers.cleanString(data.last);
-    let cleanEmail = data.email;
-    cleanEmail = cleanEmail.toLowerCase();
-
-    //sanitise profile info
-    //check that the age is a number
-    if (data.age && isNaN(data.age)) {
-        error.message = "Please provide a valid age!";
-        return res.render("edit-profile", {
-            title: "Please try again!",
-            error,
-            first: data.first,
-            last: data.last,
-            city: data.city,
-            email: data.email,
-            url: data.url,
-        });
-    }
-
-    //url to lowercase
-    let cleanUrl;
-    if (data.url) {
-        cleanUrl = data.url;
-        cleanUrl = cleanUrl.toLowerCase();
     }
 
     //check that the homepage input is a valid url
     if (data.url && !data.url.startsWith("http")) {
         error.message = "Please provide a valid homepage!";
-        return res.render("edit-profile", {
+        return res.render("editProfile", {
             title: "Please try again!",
             error,
             first: data.first,
@@ -355,7 +362,17 @@ app.post("/edit-profile", (req, res) => {
         });
     }
 
-    //capitalise the city name
+    //sanitise & format data
+    let cleanFirst = helpers.cleanString(data.first);
+    let cleanLast = helpers.cleanString(data.last);
+    let cleanEmail = data.email;
+    cleanEmail = cleanEmail.toLowerCase();
+
+    let cleanUrl;
+    if (data.url) {
+        cleanUrl = data.url;
+        cleanUrl = cleanUrl.toLowerCase();
+    }
     let cleanCity;
     if (data.city) {
         cleanCity = helpers.cleanString(data.city);
@@ -399,7 +416,7 @@ app.post("/edit-profile", (req, res) => {
         .catch((error) => {
             console.log("error in all-1-update", error);
             error.message = "Something went wrong. Please try again!";
-            res.render("edit-profile", {
+            res.render("editProfile", {
                 title: "Please try again!",
                 error,
                 first: data.first,
@@ -410,58 +427,6 @@ app.post("/edit-profile", (req, res) => {
                 url: data.url,
             });
         });
-
-    // //update USERS information
-    // db.updateUserWithPassword(
-    //     userId,
-    //     cleanFirst,
-    //     cleanLast,
-    //     cleanEmail,
-    //     data.password
-    // )
-    //     .then((results) => {
-    //         console.log("updating user profile worked");
-    //         // redirect to petition page
-    //         return res.redirect("petition");
-    //     })
-    //     .catch((err) => {
-    //         console.log("error in updating primary info profile", err);
-    //         error.message = "Something went wrong. Please try again!";
-    //         res.render("edit-profile", {
-    //             title: "Please try again!",
-    //             error,
-    //             first: data.first,
-    //             last: data.last,
-    //             age: data.age,
-    //             city: data.city,
-    //             email: data.email,
-    //             url: data.url,
-    //         });
-    //     });
-
-    // //update profile information
-
-    // db.updateProfile(cleanUrl, cleanCity, data.age, userId)
-    //     .then((results) => {
-    //         console.log("updating profile worked");
-
-    //         // redirect to petition page
-    //         return res.redirect("petition");
-    //     })
-    //     .catch((err) => {
-    //         console.log("error in updating secondary info profile", err);
-    //         error.message = "Something went wrong. Please try again!";
-    //         res.render("edit-profile", {
-    //             title: "Please try again!",
-    //             error,
-    //             first: data.first,
-    //             last: data.last,
-    //             age: data.age,
-    //             city: data.city,
-    //             email: data.email,
-    //             url: data.url,
-    //         });
-    //     });
 });
 
 //GET - petition
@@ -534,6 +499,29 @@ app.get("/thank-you", (req, res) => {
     }
 });
 
+//POST - delete signature
+app.post("/signature-delete", (req, res) => {
+    const userId = req.session.id;
+
+    db.deleteSignature(userId)
+        .then(() => {
+            console.log("signature was deleted successfully");
+            //update the cookie
+            req.session.signed = false;
+            //TO DO: re-render petition page with message
+            // const error = {
+            //     message:
+            //         "Your signature was deleted successfully. You can re-add your signature anytime below.",
+            // };
+
+            return res.redirect("petition");
+        })
+        .catch((err) => {
+            console.log("error in deleting signature", err);
+            res.sendStatus(500);
+        });
+});
+
 //GET - signers
 app.get("/signers", (req, res) => {
     if (req.session.signed == true) {
@@ -544,6 +532,11 @@ app.get("/signers", (req, res) => {
                 res.render("signers", {
                     title: "Signers of petition",
                     signers,
+                    helpers: {
+                        cityHyphen(city) {
+                            return city.replaceAll(" ", "-");
+                        },
+                    },
                 });
             })
             .catch((err) => {
@@ -557,8 +550,10 @@ app.get("/signers", (req, res) => {
 
 //GET - signers by city (dynamic route)
 app.get("/signers/:city", (req, res) => {
-    const { city } = req.params;
-    console.log("city url", req.params.city);
+    let { city } = req.params;
+    city = city.replaceAll("-", " ");
+    city = helpers.cleanString(city);
+    // console.log("city url", req.params.city);
 
     db.getSignersByCity(city)
         .then((results) => {
@@ -583,4 +578,23 @@ app.get("/logout", (req, res) => {
     return res.redirect("/login");
 });
 
-app.listen(PORT, () => console.log(`listening on port ${PORT}`));
+//POST - delete account
+app.post("/delete-account", (req, res) => {
+    const userId = req.session.id;
+
+    db.deleteAccount(userId)
+        .then(() => {
+            console.log("account delete was successful");
+            //update the cookie and redirect to logout
+            req.session = null;
+            return res.redirect("register");
+        })
+        .catch((err) => {
+            console.log("error in deleting account", err);
+            res.sendStatus(500);
+        });
+});
+
+// app.listen(PORT, () => console.log(`listening on port ${PORT}`));
+
+app.listen(port, host, () => console.log(`listening on port ${port}`));

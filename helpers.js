@@ -7,10 +7,6 @@ module.exports.cleanString = (string) => {
         .join(" ");
 };
 
-module.exports.cityToUrl = (city) => {
-    return city.replace(" ", "-");
-};
-
 //alternative to trim: recursive function to remove spaces at beginning of word
 // function remove(string) {
 //     if (string.startsWith(" ")) {
