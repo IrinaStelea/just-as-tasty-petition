@@ -529,16 +529,16 @@ app.get("/signers", (req, res) => {
             .then((results) => {
                 // console.log("signers of the petition", results.rows);
                 const signers = results.rows;
+                // for (let item in signers) {
+                //     let city;
+                //     if (item.city) {
+                //         city = item.city;
+                //     }
+                //     item.cityLink = city.replaceAll(" ", "-");
+                // }
                 res.render("signers", {
                     title: "Signers of petition",
                     signers,
-                    helpers: {
-                        cityHyphen(city) {
-                            if (city) {
-                                return city.replaceAll(" ", "-");
-                            }
-                        },
-                    },
                 });
             })
             .catch((err) => {
