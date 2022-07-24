@@ -11,16 +11,16 @@ const helpers = require("./helpers.js");
 
 const COOKIE_SECRET =
     process.env.COOKIE_SECRET || require("./secrets.json").COOKIE_SECRET;
-// const PORT = process.env.PORT || 8080;
-let port, host;
+const PORT = process.env.PORT || 8080;
+// let port, host;
 
-if (process.env.NODE_ENV === "production") {
-    host = "0.0.0.0";
-    port = process.env.PORT;
-} else {
-    host = "localhost";
-    port = 8080;
-}
+// if (process.env.NODE_ENV === "production") {
+//     host = "0.0.0.0";
+//     port = process.env.PORT;
+// } else {
+//     host = "localhost";
+//     port = 8080;
+// }
 
 //handlebars config
 app.engine("handlebars", hb.engine());
@@ -602,6 +602,6 @@ app.post("/delete-account", (req, res) => {
         });
 });
 
-// app.listen(PORT, () => console.log(`listening on port ${PORT}`));
+app.listen(PORT, () => console.log(`listening on port ${PORT}`));
 
-app.listen(port, host, () => console.log(`listening on port ${port}`));
+// app.listen(port, host, () => console.log(`listening on port ${port}`));
