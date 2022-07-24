@@ -1,24 +1,33 @@
 <main>
+    <div class="image-container"><img
+            src="/assets/tomato.jpg"
+            alt="tomato"
+        /></div>
     <div class="container">
-        <h1>Sign my petition</h1>
-        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. At ex,
-            aperiam quibusdam, iusto magnam inventore incidunt aliquam nostrum
-            quisquam aspernatur, facere numquam accusantium vitae recusandae?
-            Accusantium error cupiditate minima aspernatur?</p>
+        <h1>Sign our <span>petition.</span></h1>
+        <p class="confirmation">{{confirmation}}</p>
+        <p>Join the movement to bring imperfect fruit and vegetables to
+            supermarket shelves and stop unnecessary food waste!
+        </p>
         <p class="error">{{error.message}}</p>
         <form method="post" id="form">
 
             <div class="sign-canvas">
+                <label id="signature-label" for="signature">Please sign below</label>
                 <canvas id="canvas"></canvas>
                 <input type="hidden" id="signature" name="signature" value="" />
-                <label class="small-text" for="signature">Please sign above</label>
+
             </div>
             <button id="clear-signature">Clear signature</button>
-            <input id="submit" type="submit" value="Sign!" />
+            <p></p>
+            <input id="submit" type="submit" value="Sign the petition" />
         </form>
-        <hr />
-        <p><a href="./edit-profile">Edit profile</a></p>
-        <p class="small-text"><a href="./logout">Logout</a></p>
+
+        <ul class="footer">
+            <li><a href="./edit-profile">Edit profile</a></li><li><a
+                    href="./logout"
+                >Logout</a></li>
+        </ul>
     </div>
 </main>
 <script

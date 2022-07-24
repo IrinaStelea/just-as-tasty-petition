@@ -6,14 +6,3 @@ module.exports.cleanString = (string) => {
         .map((item) => item[0].toUpperCase() + item.slice(1).toLowerCase())
         .join(" ");
 };
-
-//alternative to trim: recursive function to remove spaces at beginning of word
-// function remove(string) {
-//     if (string.startsWith(" ")) {
-//         let string1 = string.slice(1);
-//         console.log(string1);
-//         return remove(string1);
-//     } else {
-//         return string;
-//     }
-// }

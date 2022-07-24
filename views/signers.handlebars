@@ -1,16 +1,28 @@
 <main>
+    <div class="image-container"><img
+            src="/assets/tomatoes.jpg"
+            alt="tomatoes"
+        /></div>
     <div class="container">
         <h1>Fellow signers</h1>
         <p>The petition was signed by:</p>
-        {{#signers}}
-            <p class="signer">{{#if url}}<a href="{{url}}">{{first}}
-                        {{last}}</a>{{else}}{{first}} {{last}}{{/if}}
-                {{age}}
-                {{#if city}}<a
-                        href="/signers/{{city}}"
-                    >{{city}}</a>{{/if}}</p>
-        {{/signers}}
-        <hr />
-        <p class="small-text"><a href="./logout">Logout</a></p>
+        <ul>
+            {{#signers}}
+                <li class="signer">{{#if url}}<a href="{{url}}">{{first}}
+                            {{last}}</a>{{else}}{{first}} {{last}}{{/if}}{{#if
+                        age
+                    }} / {{age}}{{/if}}
+                    {{#if city}}
+                        /
+                        <a href="/signers/{{cityLink}}">{{city}}</a>{{/if}}
+                </li>
+
+            {{/signers}}
+        </ul>
+        <ul class="footer">
+            <li><a href="./edit-profile">Edit profile</a></li><li><a
+                    href="./logout"
+                >Logout</a></li>
+        </ul>
     </div>
 </main>

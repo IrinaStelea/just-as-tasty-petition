@@ -23,7 +23,7 @@
     let offsetX = canvasOffset.left;
     let offsetY = canvasOffset.top;
 
-    //handling the canvas resize
+    //redefine canvas on window resize
     $(window).resize(function () {
         canvas[0].height = window.innerWidth * 0.1;
         canvas[0].width = window.innerWidth * 0.25;

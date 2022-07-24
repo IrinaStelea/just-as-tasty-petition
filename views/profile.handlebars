@@ -1,6 +1,10 @@
 <main>
+    <div class="image-container"><img
+            src="/assets/persimmon.jpg"
+            alt="persimmon"
+        /></div>
     <div class="container">
-        <h1>Let's get to know you, {{firstName}}!</h1>
+        <h1>Hi there, <span>{{firstName}}.</span></h1>
         <p>Tell us a bit about yourself:</p>
         <p class="error">{{error.message}}</p>
         <form method="post" id="form">
@@ -14,7 +18,8 @@
             </div>
             <input id="submit" type="submit" value="Continue" />
         </form>
-        <hr />
-        <p class="small-text"><a href="./logout">Logout</a></p>
+        <ul class="footer">
+            <li><a href="./logout">Logout</a></li>
+        </ul>
     </div>
 </main>

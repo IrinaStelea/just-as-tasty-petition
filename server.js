@@ -12,8 +12,7 @@ const helpers = require("./helpers.js");
 const COOKIE_SECRET =
     process.env.COOKIE_SECRET || require("./secrets.json").COOKIE_SECRET;
 // const PORT = process.env.PORT || 8080;
-let port;
-let host;
+let port, host;
 
 if (process.env.NODE_ENV === "production") {
     host = "0.0.0.0";
@@ -22,16 +21,6 @@ if (process.env.NODE_ENV === "production") {
     host = "localhost";
     port = 8080;
 }
-
-// //local port
-// const host = "localhost";
-// const port = 8080;
-
-// //heroku port
-// const host = "0.0.0.0";
-// const port = process.env.PORT || 8080;
-
-// const PORT = 8080;
 
 //handlebars config
 app.engine("handlebars", hb.engine());
@@ -88,7 +77,13 @@ app.get("/", (req, res) => {
 //GET registration
 app.get("/registration", (req, res) => {
     if (!req.session.id) {
-        res.render("registration", { title: "Join the cause" });
+        //with optional conf message if user has deleted account
+        res.render("registration", {
+            title: "Join the cause",
+            confirmation: req.session.message,
+        });
+        //clear the confirmation message
+        req.session.message = null;
     }
 });
 
@@ -186,9 +181,8 @@ app.post("/login", (req, res) => {
                         };
                         console.log("user id cookie assigned", req.session.id);
 
-                        //check if user has signed already and redirect to petition page
+                        //check if user has signed
 
-                        // res.redirect("petition");
                         db.getSignature(id)
                             .then((results) => {
                                 if (results.rows[0]) {
@@ -432,9 +426,13 @@ app.post("/edit-profile", (req, res) => {
 //GET - petition
 app.get("/petition", (req, res) => {
     if (req.session.signed == false) {
+        //with confirmation that signature was deleted, if this is the case
         res.render("petition", {
             title: "Sign the petition",
+            confirmation: req.session.message,
         });
+        //clear the confirmation message
+        req.session.message = null;
     } else {
         return res.redirect("/thank-you");
     }
@@ -460,7 +458,6 @@ app.post("/petition", (req, res) => {
                 message: "Please submit your signature!",
             };
             //re-render the page with an error message on the client side
-            //note that this time no slash is necessary bc I'm already in /petition page (otherwise it would throw a render error)
             res.render("petition", { title: "Try again!", error });
         });
 });
@@ -478,6 +475,7 @@ app.get("/thank-you", (req, res) => {
                     .then((results) => {
                         // console.log("results of get signature", results);
                         const signature = results.rows[0].signature;
+
                         res.render("thankyou", {
                             title: "Thank you for signing",
                             count: nbSigners,
@@ -508,6 +506,8 @@ app.post("/signature-delete", (req, res) => {
             console.log("signature was deleted successfully");
             //update the cookie
             req.session.signed = false;
+            req.session.message =
+                "Your signature was deleted successfully. You can re-sign anytime below.";
             //TO DO: re-render petition page with message
             // const error = {
             //     message:
@@ -529,13 +529,15 @@ app.get("/signers", (req, res) => {
             .then((results) => {
                 // console.log("signers of the petition", results.rows);
                 const signers = results.rows;
-                // for (let item in signers) {
-                //     let city;
-                //     if (item.city) {
-                //         city = item.city;
-                //     }
-                //     item.cityLink = city.replaceAll(" ", "-");
-                // }
+                //construct the city link
+                for (let item of signers) {
+                    let city = item.city;
+                    console.log("city property", city);
+                    item.cityLink = encodeURIComponent(city);
+                }
+
+                console.log("signers with city link", signers);
+
                 res.render("signers", {
                     title: "Signers of petition",
                     signers,
@@ -553,7 +555,7 @@ app.get("/signers", (req, res) => {
 //GET - signers by city (dynamic route)
 app.get("/signers/:city", (req, res) => {
     let { city } = req.params;
-    city = city.replaceAll("-", " ");
+    city = decodeURI(city);
     city = helpers.cleanString(city);
     // console.log("city url", req.params.city);
 
@@ -588,7 +590,10 @@ app.post("/delete-account", (req, res) => {
         .then(() => {
             console.log("account delete was successful");
             //update the cookie and redirect to logout
-            req.session = null;
+            req.session = {};
+            //set confirmation message in cookie
+            req.session.message =
+                "You have successfully deleted your account. You can re-register anytime below.";
             return res.redirect("register");
         })
         .catch((err) => {

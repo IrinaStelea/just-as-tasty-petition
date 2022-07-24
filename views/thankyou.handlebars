@@ -1,24 +1,34 @@
 <main>
+    <div class="image-container"><img
+            src="/assets/paprika.jpg"
+            alt="paprika"
+        /></div>
     <div class="container">
-        <h1>Thank you for signing, {{firstName}}!</h1>
-        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. At ex,
-            aperiam quibusdam, iusto magnam inventore incidunt aliquam nostrum
-            quisquam aspernatur, facere numquam accusantium vitae recusandae?
-            Accusantium error cupiditate minima aspernatur?</p>
+        <h1>Thanks, <span>{{firstName}}!</span></h1>
+        <p>Your signature means we are one step closer to persuading
+            supermarkets that ugly fruit and vegetables are just as tasty.</p>
         <img
             src="{{signature}}"
             id="canvas-signed"
             alt="here is your signature"
         />
         <a id="signers-count" href="signers">See all {{count}} signers</a>
-        <hr />
-        <p><a href="./edit-profile">Edit profile</a></p>
+
         <form action="/signature-delete" method="post">
             <button>Delete signature</button>
         </form>
-         <form action="/delete-account" method="post">
-            <button>Delete my account</button>
-        </form>
-        <p class="small-text"><a href="./logout">Logout</a></p>
+
+        <ul class="footer">
+            <li><a href="./edit-profile">Edit profile</a></li>
+            <li><a href="./logout">Logout</a></li>
+            <li>
+                <form
+                    id="delete-account"
+                    action="/delete-account"
+                    method="post"
+                >
+                    <button>Delete my account</button>
+                </form></li>
+        </ul>
     </div>
 </main>
