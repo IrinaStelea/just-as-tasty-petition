@@ -1,5 +1,5 @@
 (function () {
-    //FUTURE REFERENCE: make sure the script only works on the petition page (no error about canvas context on the other pages)
+    //FOR FUTURE REFERENCE: make sure the script only works on the petition page (no error about canvas context on the other pages)
     // if (!document.querySelector("#form")) {
     //     return;
     // }
@@ -109,6 +109,8 @@
         e.preventDefault();
         // e.stopPropagation();
         canvas[0].width = canvas[0].width;
+        //the code below makes existing signature still linger
+        // ctx.clearRect(0, 0, canvas[0].width, canvas[0].height);
     });
 
     //submit form

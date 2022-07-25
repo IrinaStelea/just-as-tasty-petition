@@ -5,8 +5,9 @@
         /></div>
     <div class="container">
         <h1>Thanks, <span>{{firstName}}!</span></h1>
-        <p>Your signature means we are one step closer to persuading
-            supermarkets that ugly fruit and vegetables are just as tasty.</p>
+        <p>Your signature brings us one step closer to persuading supermarkets
+            to stop discarding fruit and vegetables just because they don't meet
+            visual standards.</p>
         <img
             src="{{signature}}"
             id="canvas-signed"
@@ -14,19 +15,19 @@
         />
         <a id="signers-count" href="signers">See all {{count}} signers</a>
 
-        <form action="/signature-delete" method="post">
+        {{! <form action="/signature-delete" method="post">
             <button>Delete signature</button>
-        </form>
+        </form> }}
 
         <ul class="footer">
             <li><a href="./edit-profile">Edit profile</a></li>
             <li><a href="./logout">Logout</a></li>
             <li>
-                <form
-                    id="delete-account"
-                    action="/delete-account"
-                    method="post"
-                >
+                <form id="delete" action="/signature-delete" method="post">
+                    <button>Delete signature</button>
+                </form></li>
+            <li>
+                <form id="delete" action="/delete-account" method="post">
                     <button>Delete my account</button>
                 </form></li>
         </ul>

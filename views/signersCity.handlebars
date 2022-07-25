@@ -1,14 +1,31 @@
 <main>
+    <div class="image-container"><img
+            src="/assets/tomatoes.jpg"
+            alt="tomatoes"
+        /></div>
     <div class="container">
-        <h1>Signers from {{city}}</h1>
+        <h1>Signers from <span>{{city}}.</span></h1>
         <p>The petition was signed by:</p>
-        {{#signersByCity}}
-            <p class="signer">{{#if url}}<a href="{{url}}">{{first}}
-                        {{last}}</a>{{else}}{{first}} {{last}}{{/if}}
-                {{age}}
-            </p>
-        {{/signersByCity}}
-        <hr />
-        <p class="small-text"><a href="./logout">Logout</a></p>
+        <ul>
+            {{#signersByCity}}
+                <li class="signer">{{#if url}}<a href="{{url}}">{{first}}
+                            {{last}}</a>{{else}}{{first}} {{last}}{{/if}}{{#if
+                        age
+                    }} / {{age}}{{/if}}
+                </li>
+            {{/signersByCity}}
+        </ul>
+        <ul class="footer">
+            <li><a href="../edit-profile">Edit profile</a></li>
+            <li><a href="../logout">Logout</a></li>
+            <li>
+                <form id="delete" action="/signature-delete" method="post">
+                    <button>Delete signature</button>
+                </form></li>
+            <li>
+                <form id="delete" action="/delete-account" method="post">
+                    <button>Delete my account</button>
+                </form></li>
+        </ul>
     </div>
 </main>

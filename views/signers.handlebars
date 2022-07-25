@@ -4,8 +4,9 @@
             alt="tomatoes"
         /></div>
     <div class="container">
-        <h1>Fellow signers</h1>
-        <p>The petition was signed by:</p>
+        <h1>They have <span>signed.</span></h1>
+        <p>The following persons embraced our initiative to prevent the waste of
+            ugly produce:</p>
         <ul>
             {{#signers}}
                 <li class="signer">{{#if url}}<a href="{{url}}">{{first}}
@@ -20,9 +21,16 @@
             {{/signers}}
         </ul>
         <ul class="footer">
-            <li><a href="./edit-profile">Edit profile</a></li><li><a
-                    href="./logout"
-                >Logout</a></li>
+            <li><a href="./edit-profile">Edit profile</a></li>
+            <li><a href="./logout">Logout</a></li>
+            <li>
+                <form id="delete" action="/signature-delete" method="post">
+                    <button>Delete signature</button>
+                </form></li>
+            <li>
+                <form id="delete" action="/delete-account" method="post">
+                    <button>Delete my account</button>
+                </form></li>
         </ul>
     </div>
 </main>

@@ -79,7 +79,7 @@ app.get("/registration", (req, res) => {
     if (!req.session.id) {
         //with optional conf message if user has deleted account
         res.render("registration", {
-            title: "Join the cause",
+            title: "Just as tasty - registration",
             confirmation: req.session.message,
         });
         //clear the confirmation message
@@ -135,7 +135,7 @@ app.post("/registration", (req, res) => {
 //GET - login
 app.get("/login", (req, res) => {
     if (!req.session.id) {
-        res.render("login", { title: "Login to join the cause" });
+        res.render("login", { title: "Login" });
     } else {
         res.redirect("/petition");
     }
@@ -306,7 +306,7 @@ app.get("/edit-profile", (req, res) => {
             console.log("results of get profile", results.rows);
             let signer = results.rows[0];
             res.render("editProfile", {
-                title: "Edit my profile",
+                title: "Edit profile",
                 first: signer.first,
                 last: signer.last,
                 age: signer.age,
@@ -373,6 +373,7 @@ app.post("/edit-profile", (req, res) => {
     }
 
     const userId = req.session.id;
+    req.session.firstName = cleanFirst;
 
     let userUpdatePromise;
 

@@ -142,11 +142,15 @@ button {
     font-size: 0.8em;
 }
 
-#delete-account > button {
-    display: inline;
+#delete {
+    display: inline-block;
+}
+
+#delete > button {
     background: none !important;
     border: none;
     padding: 0 !important;
+    font-size: 1em;
     font-family: "Work Sans", sans-serif;
     color: black;
     text-decoration: underline;
@@ -159,7 +163,6 @@ button {
 }
 
 #signature-label {
-    /* font-style: italic; */
     font-size: 0.8em;
 }
 
@@ -176,6 +179,7 @@ button {
 .signer {
     font-weight: 400;
     margin-left: 5vw;
+    margin-top: 1vh;
 }
 
 #signers-count {
