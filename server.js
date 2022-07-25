@@ -27,14 +27,14 @@ app.engine("handlebars", hb.engine());
 app.set("view engine", "handlebars");
 
 //https middleware
-// if (process.env.NODE_ENV == "production") {
-//     app.use((req, res, next) => {
-//         if (req.headers["x-forwarded-proto"].startsWith("https")) {
-//             return next();
-//         }
-//         res.redirect(`https://${req.hostname}${req.url}`);
-//     });
-// }
+if (process.env.NODE_ENV == "production") {
+    app.use((req, res, next) => {
+        if (req.headers["x-forwarded-proto"].startsWith("https")) {
+            return next();
+        }
+        res.redirect(`https://${req.hostname}${req.url}`);
+    });
+}
 
 //cookie session middleware
 app.use(
@@ -78,13 +78,16 @@ app.get("/", (req, res) => {
 app.get("/registration", (req, res) => {
     if (!req.session.id) {
         //with optional conf message if user has deleted account
+
         res.render("registration", {
-            title: "Just as tasty - registration",
+            title: "Just as tasty / Registration",
             confirmation: req.session.message,
         });
-        //clear the confirmation message
-        req.session.message = null;
+    } else {
+        res.redirect("/petition");
     }
+    //clear the confirmation message
+    req.session.message = null;
 });
 
 //POST - registration
@@ -135,7 +138,7 @@ app.post("/registration", (req, res) => {
 //GET - login
 app.get("/login", (req, res) => {
     if (!req.session.id) {
-        res.render("login", { title: "Login" });
+        res.render("login", { title: "Just as tasty / Login" });
     } else {
         res.redirect("/petition");
     }
@@ -429,7 +432,7 @@ app.get("/petition", (req, res) => {
     if (req.session.signed == false) {
         //with confirmation that signature was deleted, if this is the case
         res.render("petition", {
-            title: "Sign the petition",
+            title: "Just as tasty / Sign",
             confirmation: req.session.message,
         });
         //clear the confirmation message
@@ -540,7 +543,7 @@ app.get("/signers", (req, res) => {
                 console.log("signers with city link", signers);
 
                 res.render("signers", {
-                    title: "Signers of petition",
+                    title: "Just as tasty / Signers",
                     signers,
                 });
             })
