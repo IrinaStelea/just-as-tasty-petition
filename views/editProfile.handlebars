@@ -7,7 +7,7 @@
         <h1>Edit your <span>profile.</span></h1>
         <p>Want to update the info you submitted to us?</p>
         <p>Just fill out the corresponding fields below:</p>
-        <p class="error">{{error.message}}</p>
+        <p class="error">{{{error.message}}}</p>
         <form method="post" id="form">
             <div class="name-field">
                 <label for="first">First name:</label>
@@ -38,7 +38,7 @@
                     name="age"
                     id="age"
                     min="16"
-                    max="99"
+                    max="111"
                     value="{{age}}"
                 /><label for="city">City:</label>
                 <input

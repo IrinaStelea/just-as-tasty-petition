@@ -263,7 +263,7 @@ app.post("/profile", (req, res) => {
 
     //check that the homepage input is a valid url
     if (data.url && !data.url.startsWith("http")) {
-        error.message = "Please provide a valid homepage!";
+        error.message = "Please provide a valid http(s) URL!";
         return res.render("profile", {
             title: "Please try again!",
             error,
@@ -329,10 +329,33 @@ app.post("/edit-profile", (req, res) => {
     const data = req.body;
     let error = {};
 
-    //check that first, last, email are not empty - TO DO: make customised errors
-    if (!data.first || !data.last || !data.email) {
-        error.message =
-            "Please provide your first & last name and email address!";
+    //error handling for missing/wrong data
+    if (
+        !data.first ||
+        !data.last ||
+        !data.email ||
+        (data.url && !data.url.startsWith("http"))
+    ) {
+        error.message = "Please provide:";
+        if (!data.first) {
+            let errorFirst = '<li class="error">your first name</li>';
+            error.message += errorFirst;
+        }
+
+        if (!data.last) {
+            let errorLast = '<li class="error">your last name</li>';
+            error.message += errorLast;
+        }
+        if (!data.email) {
+            let errorEmail = '<li class="error">your email</li>';
+            error.message += errorEmail;
+        }
+
+        if (data.url && !data.url.startsWith("http")) {
+            let errorUrl = '<li class="error">a valid http(s) URL</li>';
+            error.message += errorUrl;
+        }
+
         return res.render("editProfile", {
             title: "Please try again!",
             error,
@@ -342,20 +365,6 @@ app.post("/edit-profile", (req, res) => {
             city: data.city,
             email: data.email,
             url: data.url,
-        });
-    }
-
-    //check that the homepage input is a valid url
-    if (data.url && !data.url.startsWith("http")) {
-        error.message = "Please provide a valid homepage!";
-        return res.render("editProfile", {
-            title: "Please try again!",
-            error,
-            first: data.first,
-            last: data.last,
-            age: data.age,
-            city: data.city,
-            email: data.email,
         });
     }
 
