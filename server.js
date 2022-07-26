@@ -106,6 +106,20 @@ app.post("/registration", (req, res) => {
         });
     }
 
+    //email validation
+
+    //password validation
+    if (data.password.length < 6) {
+        error.message = "Your password must be at least 6 characters long!";
+        return res.render("registration", {
+            title: "Please try again!",
+            error,
+            first: data.first,
+            last: data.last,
+            email: data.email,
+        });
+    }
+
     let cleanFirst = helpers.cleanString(data.first);
     let cleanLast = helpers.cleanString(data.last);
     let cleanEmail = data.email;
@@ -246,14 +260,15 @@ app.post("/profile", (req, res) => {
     const userId = req.session.id;
 
     //check that the age is a number
-    if (data.age && isNaN(data.age)) {
-        error.message = "Please provide a valid age!";
+    if (data.age && !(!isNaN(data.age) && data.age >= 16 && data.age <= 100)) {
+        error.message = "Please provide a valid age between 16 and 100!";
         return res.render("profile", {
             title: "Please try again!",
             error,
             firstName: req.session.firstName,
         });
     }
+
     //url to lowercase
     let cleanUrl;
     if (data.url) {
@@ -334,7 +349,9 @@ app.post("/edit-profile", (req, res) => {
         !data.first ||
         !data.last ||
         !data.email ||
-        (data.url && !data.url.startsWith("http"))
+        (data.password && data.password.length < 6 < 6) ||
+        (data.url && !data.url.startsWith("http")) ||
+        (data.age && !(!isNaN(data.age) && data.age >= 16 && data.age <= 100))
     ) {
         error.message = "Please provide:";
         if (!data.first) {
@@ -351,9 +368,24 @@ app.post("/edit-profile", (req, res) => {
             error.message += errorEmail;
         }
 
+        if (data.password && data.password.length < 6) {
+            let errorPass =
+                '<li class="error">a password of min 6 characters</li>';
+            error.message += errorPass;
+        }
+
         if (data.url && !data.url.startsWith("http")) {
             let errorUrl = '<li class="error">a valid http(s) URL</li>';
             error.message += errorUrl;
+        }
+
+        if (
+            data.age &&
+            !(!isNaN(data.age) && data.age >= 16 && data.age <= 100)
+        ) {
+            let errorAge =
+                '<li class="error">a valid age between 16 and 100</li>';
+            error.message += errorAge;
         }
 
         return res.render("editProfile", {
@@ -613,6 +645,11 @@ app.post("/delete-account", (req, res) => {
             console.log("error in deleting account", err);
             res.sendStatus(500);
         });
+});
+
+//redirect all other routes to petition
+app.get("*", (req, res) => {
+    res.redirect("/petition");
 });
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
