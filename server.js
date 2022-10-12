@@ -1,32 +1,21 @@
 const express = require("express");
 const app = express();
-const db = require("./db.js");
 const hb = require("express-handlebars");
 const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
+const db = require("./db.js");
 const helpers = require("./helpers.js");
 
-// console.log("db in server", db);
-
+const PORT = process.env.PORT || 8080;
 const COOKIE_SECRET =
     process.env.COOKIE_SECRET || require("./secrets.json").COOKIE_SECRET;
-const PORT = process.env.PORT || 8080;
-// let port, host;
 
-// if (process.env.NODE_ENV === "production") {
-//     host = "0.0.0.0";
-//     port = process.env.PORT;
-// } else {
-//     host = "localhost";
-//     port = 8080;
-// }
-
-//handlebars config
+//handlebars configuration
 app.engine("handlebars", hb.engine());
 app.set("view engine", "handlebars");
 
-//https middleware
+//https redirect middleware
 if (process.env.NODE_ENV == "production") {
     app.use((req, res, next) => {
         if (req.headers["x-forwarded-proto"].startsWith("https")) {
@@ -53,10 +42,8 @@ app.use(express.urlencoded({ extended: false }));
 //serve the public folder
 app.use(express.static("./public"));
 
-//all routes
+//all routes - redirect to registration if not logged in
 app.get("*", (req, res, next) => {
-    // console.log("saved cookie", req.session.userId);
-    //redirect to registration if not logged in
     if (
         req.session.id === undefined &&
         req.url !== "/registration" &&
@@ -70,18 +57,15 @@ app.get("*", (req, res, next) => {
 
 //redirect root address to registration
 app.get("/", (req, res) => {
-    // console.log("get request to / route just happened");
     res.redirect("/registration");
 });
 
-//GET registration
+//GET route - registration
 app.get("/registration", (req, res) => {
     if (!req.session.id) {
-        //with optional conf message if user has deleted account
-
         res.render("registration", {
             title: "Just as tasty / Registration",
-            confirmation: req.session.message,
+            confirmation: req.session.message, //for case when user has just deleted account and is redirected to registration: send confirmation message stored in cookie
         });
     } else {
         res.redirect("/petition");
@@ -90,27 +74,39 @@ app.get("/registration", (req, res) => {
     req.session.message = null;
 });
 
-//POST - registration
+//POST route - registration
 app.post("/registration", (req, res) => {
-    //grab the info from the form
+    //grab the info from the registration form
     const data = req.body;
-    let error = {};
+
+    //form validation
+    let error = { message: "" };
     if (!data.first || !data.last || !data.email || !data.password) {
-        error.message = "Please complete all fields!";
-        return res.render("registration", {
-            title: "Please try again!",
-            error,
-            first: data.first,
-            last: data.last,
-            email: data.email,
-        });
+        error.message += "Please complete all fields \n";
     }
 
     //email validation
-
+    if (data.email) {
+        let lastAtPos = data.email.lastIndexOf("@");
+        let lastDotPos = data.email.lastIndexOf(".");
+        if (
+            !(
+                lastAtPos < lastDotPos &&
+                lastAtPos > 0 &&
+                data.email.indexOf("@@") == -1 &&
+                lastDotPos > 2 &&
+                data.email.length - lastDotPos > 2
+            )
+        ) {
+            error.message += "Please provide a valide email \n";
+        }
+    }
     //password validation
-    if (data.password.length < 6) {
-        error.message = "Your password must be at least 6 characters long!";
+    if (data.password && data.password.length < 6) {
+        error.message += "Password must have at least 6 characters \n";
+    }
+
+    if (error.message !== "") {
         return res.render("registration", {
             title: "Please try again!",
             error,
@@ -120,6 +116,7 @@ app.post("/registration", (req, res) => {
         });
     }
 
+    //sanitise the data
     let cleanFirst = helpers.cleanString(data.first);
     let cleanLast = helpers.cleanString(data.last);
     let cleanEmail = data.email;
@@ -127,8 +124,6 @@ app.post("/registration", (req, res) => {
 
     db.insertUser(cleanFirst, cleanLast, cleanEmail, data.password)
         .then((results) => {
-            console.log("inserting new user worked");
-
             //set the cookie session on the user id to keep track of login
             const id = results.rows[0].id;
             const firstName = results.rows[0].first;
@@ -137,19 +132,17 @@ app.post("/registration", (req, res) => {
                 firstName,
                 signed: false,
             };
-            console.log("user id cookie assigned", req.session.id);
-            // redirect to petition page
+            // redirect to profile page
             res.redirect("profile");
         })
         .catch((err) => {
             console.log("error in adding new user", err);
             error.message = "Something went wrong. Please try again!";
-            //TO DO: basically the only error here would be duplicate email? what should happen in this case?
             res.render("registration", { title: "Try again!", error });
         });
 });
 
-//GET - login
+//GET route - login
 app.get("/login", (req, res) => {
     if (!req.session.id) {
         res.render("login", { title: "Just as tasty / Login" });
@@ -158,10 +151,11 @@ app.get("/login", (req, res) => {
     }
 });
 
-//POST - login
+//POST route - login
 app.post("/login", (req, res) => {
     //grab the info from the form
     const data = req.body;
+
     let error = {};
     if (!data.email || !data.password) {
         error.message = "Please complete all fields!";
@@ -171,43 +165,31 @@ app.post("/login", (req, res) => {
         });
     }
 
-    let cleanEmail = data.email;
-    cleanEmail = cleanEmail.toLowerCase();
-
-    db.findUser(cleanEmail)
+    db.findUser(data.email.toLowerCase())
         .then((results) => {
-            console.log(
-                "user email exists, here is the entire info",
-                results.rows
-            );
             let inputPass = data.password;
             let regPass = results.rows[0].password;
-            //authenticate the user (TO DO: consider moving this password check to db.js)
+
+            //authenticate the user
             return bcrypt
                 .compare(inputPass, regPass)
                 .then((result) => {
                     if (result) {
-                        console.log("authentication successful");
+                        //authentication successful
 
-                        //set the cookie session on the user id to keep track of login
+                        //set the cookie session on the userId to keep track of login
                         const id = results.rows[0].id;
                         const firstName = results.rows[0].first;
                         req.session = {
                             id,
                             firstName,
                         };
-                        console.log("user id cookie assigned", req.session.id);
 
-                        //check if user has signed
-
+                        //check if user has already signed petition and redirect accordingly
                         db.getSignature(id)
                             .then((results) => {
                                 if (results.rows[0]) {
-                                    console.log(
-                                        "user has already signed"
-                                        // results.rows[0]
-                                    );
-                                    //set cookie to keep track of signing
+                                    //user has signed - set cookie to keep track of signing
                                     req.session.signed = true;
                                     return res.redirect("thank-you");
                                 } else {
@@ -220,9 +202,7 @@ app.post("/login", (req, res) => {
                                 res.sendStatus(500);
                             });
                     } else {
-                        console.log(
-                            "authentication failed. passwords don't match"
-                        );
+                        //authentication failed, passwords don't match
                         error.message = "Invalid email or password";
                         return res.render("login", {
                             title: "Please try again!",
@@ -244,7 +224,7 @@ app.post("/login", (req, res) => {
         });
 });
 
-//GET - profile
+//GET route - profile
 app.get("/profile", (req, res) => {
     res.render("profile", {
         title: "Profile",
@@ -252,38 +232,35 @@ app.get("/profile", (req, res) => {
     });
 });
 
-//POST - profile
+//POST route - profile
 app.post("/profile", (req, res) => {
     const data = req.body;
-    let error = {};
-
+    let error = { message: "" };
     const userId = req.session.id;
 
+    //data validation
     //check that the age is a number
     if (data.age && !(!isNaN(data.age) && data.age >= 16 && data.age <= 100)) {
-        error.message = "Please provide a valid age between 16 and 100!";
-        return res.render("profile", {
-            title: "Please try again!",
-            error,
-            firstName: req.session.firstName,
-        });
-    }
-
-    //url to lowercase
-    let cleanUrl;
-    if (data.url) {
-        cleanUrl = data.url;
-        cleanUrl = cleanUrl.toLowerCase();
+        error.message += "Please provide a valid age between 16 and 100! \n";
     }
 
     //check that the homepage input is a valid url
-    if (data.url && !data.url.startsWith("http")) {
-        error.message = "Please provide a valid http(s) URL!";
+    if (data.url && !data.url.toLowerCase().startsWith("http")) {
+        error.message += "Please provide a valid http(s) URL! \n";
+    }
+
+    if (error.message != "") {
         return res.render("profile", {
             title: "Please try again!",
             error,
             firstName: req.session.firstName,
         });
+    }
+
+    //convert url to lowercase
+    let cleanUrl;
+    if (data.url) {
+        cleanUrl = data.url.toLowerCase();
     }
 
     //capitalise the city name
@@ -294,12 +271,7 @@ app.post("/profile", (req, res) => {
 
     if (data.age || data.url || data.city) {
         db.insertProfile(cleanUrl, cleanCity, data.age, userId)
-            .then((results) => {
-                console.log(
-                    "inserting new profile worked, here are the results",
-                    results.rows
-                );
-
+            .then(() => {
                 // redirect to petition page
                 return res.redirect("petition");
             })
@@ -321,7 +293,6 @@ app.post("/profile", (req, res) => {
 app.get("/edit-profile", (req, res) => {
     db.getProfile(req.session.id)
         .then((results) => {
-            console.log("results of get profile", results.rows);
             let signer = results.rows[0];
             res.render("editProfile", {
                 title: "Edit profile",
@@ -624,7 +595,7 @@ app.get("/signers/:city", (req, res) => {
 //GET - logout
 app.get("/logout", (req, res) => {
     req.session = null;
-    return res.redirect("/login");
+    return res.redirect("/");
 });
 
 //POST - delete account

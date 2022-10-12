@@ -169,6 +169,7 @@ button {
 .error {
     color: red;
     font-style: italic;
+    white-space: pre-wrap;
 }
 
 .confirmation {

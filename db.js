@@ -13,13 +13,10 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const spicedPg = require("spiced-pg");
-// const username = "postgres";
-// const password = "postgres";
-// const database = "petition"; //this is the database
 const bcrypt = require("bcryptjs");
 const db = spicedPg(databaseUrl);
 
-//function for hashing the password; important to return in first row otherwise it won't work!
+//function for hashing the password
 function hashPassword(pass) {
     return (
         bcrypt
@@ -29,21 +26,14 @@ function hashPassword(pass) {
             })
             //generate the hash
             .then((hashedPassword) => {
-                // console.log("password in hash function", hashedPassword);
                 return hashedPassword;
             })
     );
 }
 
-// function checkPassword(inputPass, regPass) {
-//     return bcrypt.compare(inputPass, regPass).then((result) => {console.log("result from comparing the passwords", result)})
-// }
-
 //registration
 module.exports.insertUser = (first, last, email, password) => {
-    //return is important otherwise it won't return the promise
     return hashPassword(password).then((hashedPass) => {
-        console.log("hashed pass", hashedPass);
         return db.query(
             //add user to users table returning the id & first name to store in the cookie session
             `
@@ -54,10 +44,9 @@ module.exports.insertUser = (first, last, email, password) => {
     });
 };
 
-//update user with password
+//update user profile including password
 module.exports.updateUserWithPassword = (id, first, last, email, password) => {
     return hashPassword(password).then((hashedPass) => {
-        console.log("hashed pass", hashedPass);
         return db.query(
             `UPDATE users SET first=$2, last=$3, email=$4, password=$5 WHERE id=$1`,
             [id, first, last, email, hashedPass]
@@ -65,7 +54,7 @@ module.exports.updateUserWithPassword = (id, first, last, email, password) => {
     });
 };
 
-//update user without password
+//update user profile excluding password
 module.exports.updateUserWithoutPassword = (id, first, last, email) => {
     return db.query(
         `UPDATE users SET first=$2, last=$3, email=$4 WHERE id=$1`,
@@ -73,7 +62,7 @@ module.exports.updateUserWithoutPassword = (id, first, last, email) => {
     );
 };
 
-//upsert query
+//upsert query for updating the city, age and homepage
 module.exports.updateProfile = (url, city, age, userId) => {
     return db.query(
         `
@@ -85,7 +74,7 @@ module.exports.updateProfile = (url, city, age, userId) => {
     );
 };
 
-//profile
+//create user profile
 module.exports.insertProfile = (url, city, age, userId) => {
     return db.query(
         `
@@ -95,46 +84,40 @@ module.exports.insertProfile = (url, city, age, userId) => {
     );
 };
 
-//edit profile query
+//get user profile
 module.exports.getProfile = (userId) => {
-    // return db.query(`SELECT * FROM signatures`);
-
     return db.query(
-        `SELECT * from users FULL OUTER JOIN profiles ON users.id = profiles.user_id WHERE users.id = $1`,
+        `SELECT * from users FULL OUTER JOIN profiles ON users.id = profiles.user_id WHERE users.id=$1`,
         [userId]
     );
 };
 
-//login function
+//login - check if email is in the db
 module.exports.findUser = (email) => {
-    return db.query(`SELECT * FROM users WHERE email = '${email}'`);
+    return db.query(`SELECT * FROM users WHERE email=$1`, [email]);
 };
 
+//get all petition signers
 module.exports.getSigners = () => {
-    // return db.query(`SELECT * FROM signatures`);
-
     return db.query(
         `SELECT * from users LEFT OUTER JOIN signatures ON users.id = signatures.user_id LEFT OUTER JOIN profiles ON users.id = profiles.user_id WHERE signatures.signature IS NOT NULL`
     );
 };
 
+//get signers by city - join on signatures & profiles, dropping users who do not have a signature; note the use of "LOWER" for case sensitivity
 module.exports.getSignersByCity = (city = null) => {
     return db.query(
         `SELECT * from users LEFT OUTER JOIN signatures ON users.id = signatures.user_id LEFT OUTER JOIN profiles ON users.id = profiles.user_id WHERE signatures.signature IS NOT NULL AND LOWER(profiles.city) = LOWER($1)`,
         [city || null]
     );
-    // - join on signatures
-    // - join on profiles
-    // WHERE clause for the city pages
-    //WHERE city = $1 - this works only if the city names are consistent (consider case sensitivity) -> use WHERE LOWER(city) = LOWER($1); join with profiles should be a left outer join (w)
-    // ).then(({rows}) => rows.map(({first, last}) => ({} //throw away all the users that do not have a connected signature)
 };
 
+//get signature of signed in user
 module.exports.getSignature = (id) => {
-    return db.query(`SELECT signature FROM signatures WHERE user_id = '${id}'`);
+    return db.query(`SELECT signature FROM signatures WHERE user_id=$1`, [id]);
 };
 
-//add returning statement to get the id of the current entry as result of this function
+//add signer returning the id in case of success
 module.exports.addSigner = (userId, signature) => {
     return db.query(
         `
@@ -144,11 +127,12 @@ module.exports.addSigner = (userId, signature) => {
     );
 };
 
+//delete the signature
 module.exports.deleteSignature = (userId) => {
-    return db.query(`DELETE FROM signatures WHERE user_id=${userId}`);
+    return db.query(`DELETE FROM signatures WHERE user_id=$1`, [userId]);
 };
 
+//delet the entire account - this will delete the user data, profile info and signature bc of the "on delete cascade" constraint
 module.exports.deleteAccount = (userId) => {
-    //this will delete the info from all three tables because I added a constraint to cascade delete
-    return db.query(`DELETE FROM users WHERE id=${userId}`);
+    return db.query(`DELETE FROM users WHERE id=$1`, [userId]);
 };
