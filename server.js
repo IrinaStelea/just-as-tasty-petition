@@ -379,8 +379,7 @@ app.post("/edit-profile", (req, res) => {
 
     let cleanUrl;
     if (data.url) {
-        cleanUrl = data.url;
-        cleanUrl = cleanUrl.toLowerCase();
+        cleanUrl = data.url.toLowerCase();
     }
     let cleanCity;
     if (data.city) {
@@ -390,8 +389,8 @@ app.post("/edit-profile", (req, res) => {
     const userId = req.session.id;
     req.session.firstName = cleanFirst;
 
+    //define promises based on whether user changed password or not
     let userUpdatePromise;
-
     if (data.password) {
         userUpdatePromise = db.updateUserWithPassword(
             userId,
@@ -420,11 +419,10 @@ app.post("/edit-profile", (req, res) => {
 
     allPromises
         .then((results) => {
-            console.log("update all-in-1 worked", results);
             return res.redirect("petition");
         })
         .catch((error) => {
-            console.log("error in all-1-update", error);
+            console.log("error profile update", error);
             error.message = "Something went wrong. Please try again!";
             res.render("editProfile", {
                 title: "Please try again!",
@@ -439,10 +437,10 @@ app.post("/edit-profile", (req, res) => {
         });
 });
 
-//GET - petition
+//GET route for petition
 app.get("/petition", (req, res) => {
     if (req.session.signed == false) {
-        //with confirmation that signature was deleted, if this is the case
+        //in case the user just deleted their signature, add the confirmation message stored in the cookie
         res.render("petition", {
             title: "Just as tasty / Sign",
             confirmation: req.session.message,
@@ -450,20 +448,17 @@ app.get("/petition", (req, res) => {
         //clear the confirmation message
         req.session.message = null;
     } else {
+        //if user has already signed, redirect to thank you page
         return res.redirect("/thank-you");
     }
 });
 
-//POST - petition
+//POST route for petition
 app.post("/petition", (req, res) => {
-    //grab the info from the form
     const data = req.body;
-
     const userId = req.session.id;
-
     db.addSigner(userId, data.signature)
-        .then((results) => {
-            console.log("addSigner worked, here is the id", results.rows[0].id);
+        .then(() => {
             req.session.signed = true;
             //redirect if successful
             res.redirect("/thank-you");
@@ -478,20 +473,16 @@ app.post("/petition", (req, res) => {
         });
 });
 
-//GET - thank you
+//GET route for thank you page
 app.get("/thank-you", (req, res) => {
     if (req.session.signed == true) {
         db.getSigners()
             .then((results) => {
-                // console.log("count", results.rows);
                 const nbSigners = results.rowCount;
-                // console.log("date", date);
-
+                //render the signature
                 db.getSignature(req.session.id)
                     .then((results) => {
-                        // console.log("results of get signature", results);
                         const signature = results.rows[0].signature;
-
                         res.render("thankyou", {
                             title: "Thank you for signing",
                             count: nbSigners,
@@ -509,6 +500,7 @@ app.get("/thank-you", (req, res) => {
                 res.sendStatus(500);
             });
     } else {
+        //if the user has not signed and wants to access thank you, redirect to petition
         return res.redirect("/petition");
     }
 });
@@ -516,20 +508,12 @@ app.get("/thank-you", (req, res) => {
 //POST - delete signature
 app.post("/signature-delete", (req, res) => {
     const userId = req.session.id;
-
     db.deleteSignature(userId)
         .then(() => {
-            console.log("signature was deleted successfully");
-            //update the cookie
+            //signature delete successful -> update the cookie
             req.session.signed = false;
             req.session.message =
                 "Your signature was deleted successfully. You can re-sign anytime below.";
-            //TO DO: re-render petition page with message
-            // const error = {
-            //     message:
-            //         "Your signature was deleted successfully. You can re-add your signature anytime below.",
-            // };
-
             return res.redirect("petition");
         })
         .catch((err) => {
@@ -543,16 +527,12 @@ app.get("/signers", (req, res) => {
     if (req.session.signed == true) {
         db.getSigners()
             .then((results) => {
-                // console.log("signers of the petition", results.rows);
                 const signers = results.rows;
-                //construct the city link
+                //construct the city URLs
                 for (let item of signers) {
                     let city = item.city;
-                    console.log("city property", city);
                     item.cityLink = encodeURIComponent(city);
                 }
-
-                console.log("signers with city link", signers);
 
                 res.render("signers", {
                     title: "Just as tasty / Signers",
@@ -568,18 +548,15 @@ app.get("/signers", (req, res) => {
     }
 });
 
-//GET - signers by city (dynamic route)
+//GET signers by city (dynamic route)
 app.get("/signers/:city", (req, res) => {
     let { city } = req.params;
     city = decodeURI(city);
     city = helpers.cleanString(city);
-    // console.log("city url", req.params.city);
 
     db.getSignersByCity(city)
         .then((results) => {
-            console.log("these are the signers by city", results.rows);
             let signersByCity = results.rows;
-
             res.render("signersCity", {
                 title: `Signers from ${city}`,
                 signersByCity,
@@ -594,17 +571,16 @@ app.get("/signers/:city", (req, res) => {
 
 //GET - logout
 app.get("/logout", (req, res) => {
+    //clear the cookie
     req.session = null;
     return res.redirect("/");
 });
 
-//POST - delete account
+//POST route for account deletion
 app.post("/delete-account", (req, res) => {
     const userId = req.session.id;
-
     db.deleteAccount(userId)
         .then(() => {
-            console.log("account delete was successful");
             //update the cookie and redirect to logout
             req.session = {};
             //set confirmation message in cookie
@@ -624,5 +600,3 @@ app.get("*", (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
-
-// app.listen(port, host, () => console.log(`listening on port ${port}`));

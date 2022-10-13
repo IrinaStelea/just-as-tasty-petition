@@ -5,19 +5,10 @@
         /></div>
     <div class="container">
         <h1>Thanks, <span>{{firstName}}!</span></h1>
-        <p>Your signature brings us one step closer to persuading supermarkets
-            to stop discarding fruit and vegetables just because they are not pretty.</p>
-        <img
-            src="{{signature}}"
-            id="canvas-signed"
-            alt="here is your signature"
-        />
+        <p>Your signature can help us persuade supermarkets to stop throwing
+            away fruit and vegetables just because they are not pretty.</p>
+        <img src="{{signature}}" id="canvas-signed" alt="your signature" />
         <a id="signers-count" href="signers">See all {{count}} signers</a>
-
-        {{! <form action="/signature-delete" method="post">
-            <button>Delete signature</button>
-        </form> }}
-
         <ul class="footer">
             <li><a href="./edit-profile">Edit profile</a></li>
             <li><a href="./logout">Logout</a></li>
