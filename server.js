@@ -51,7 +51,6 @@ app.get("*", (req, res, next) => {
     ) {
         return res.redirect("/registration");
     }
-
     return next();
 });
 
@@ -166,41 +165,30 @@ app.post("/login", (req, res) => {
     }
 
     db.findUser(data.email.toLowerCase())
-        .then((results) => {
+        .then((userData) => {
             let inputPass = data.password;
-            let regPass = results.rows[0].password;
-
+            let regPass = userData.rows[0].password;
             //authenticate the user
             return bcrypt
                 .compare(inputPass, regPass)
-                .then((result) => {
-                    if (result) {
+                .then((passComparison) => {
+                    if (passComparison) {
                         //authentication successful
-
                         //set the cookie session on the userId to keep track of login
-                        const id = results.rows[0].id;
-                        const firstName = results.rows[0].first;
+                        const id = userData.rows[0].id;
+                        const firstName = userData.rows[0].first;
                         req.session = {
                             id,
                             firstName,
                         };
-
-                        //check if user has already signed petition and redirect accordingly
-                        db.getSignature(id)
-                            .then((results) => {
-                                if (results.rows[0]) {
-                                    //user has signed - set cookie to keep track of signing
-                                    req.session.signed = true;
-                                    return res.redirect("thank-you");
-                                } else {
-                                    req.session.signed = false;
-                                    return res.redirect("petition");
-                                }
-                            })
-                            .catch((err) => {
-                                console.log("error in getSignature", err);
-                                res.sendStatus(500);
-                            });
+                        //check if user has already signed and redirect accordingly
+                        if (userData.rows[0].signature_id) {
+                            req.session.signed = true;
+                            return res.redirect("thank-you");
+                        } else {
+                            req.session.signed = false;
+                            return res.redirect("petition");
+                        }
                     } else {
                         //authentication failed, passwords don't match
                         error.message = "Invalid email or password";
@@ -418,7 +406,7 @@ app.post("/edit-profile", (req, res) => {
     const allPromises = Promise.all([userUpdatePromise, userProfilePromise]);
 
     allPromises
-        .then((results) => {
+        .then(() => {
             return res.redirect("petition");
         })
         .catch((error) => {
@@ -574,6 +562,13 @@ app.get("/logout", (req, res) => {
     //clear the cookie
     req.session = null;
     return res.redirect("/");
+});
+
+//GET route for account deletion
+app.get("/delete-account", (req, res) => {
+    res.render("deleteAccount", {
+        title: "Delete account",
+    });
 });
 
 //POST route for account deletion

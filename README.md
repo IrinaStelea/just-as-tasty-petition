@@ -20,11 +20,11 @@ The cause: prevent supermarkets from throwing away blemished/imperfect fruit & v
 
     -   registration & login, including hashing of passwords, server-side form validation & data sanitisation
 
--   Profile editing:
+-   Profile editing
 
     -   users can update their entire profile information (including password) at any time
 
--   Signing:
+-   Signing
 
     -   users are able to draw/edit their signature (with immediate render of the updated signature) as well as delete it
 
@@ -32,7 +32,7 @@ The cause: prevent supermarkets from throwing away blemished/imperfect fruit & v
 
     -   once they've signed, users can view a list of other signers (full name, age, city and homepage, if available) and sort it by city
 
--   Account deletion:
+-   Account deletion
 
     -   users can delete their accounts including their profile information and signature
 
@@ -51,34 +51,34 @@ The cause: prevent supermarkets from throwing away blemished/imperfect fruit & v
 -   install all the dependencies with `npm install`
 -   run the project locally with `node server.js` and open it at `localhost:8080/petition`
 
-<!-- ## Previews
+## Previews
 
-### Gallery view + load more on scroll
+### Registration + edit profile (with data validation)
 
-<img src="public/gallery_pagination_.gif">
-
-<br>
-
-### Uploading an image
-
-<img src="public/image_upload_.gif">
+<img src="public/assets/registration_profile.gif">
 
 <br>
 
-### Commenting on images
+### Signing the petition
 
-<img src="public/comment_.gif">
-
-<br>
-
-### Single image view + routing
-
-<img src="public/single_view_routing_.gif">
+<img src="public/assets/signing.gif">
 
 <br>
 
-### New image notification
+### Login + viewing signers & signers by city
 
-<img src="public/new_image_notification_.gif">
+<img src="public/assets/login_signers.gif">
 
-<br> -->
+<br>
+
+### Profile editing
+
+<img src="public/assets/edit_profile.gif">
+
+<br>
+
+### Delete account
+
+<img src="public/assets/delete_account.gif">
+
+<br>

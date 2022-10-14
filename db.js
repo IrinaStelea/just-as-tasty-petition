@@ -92,9 +92,12 @@ module.exports.getProfile = (userId) => {
     );
 };
 
-//login - check if email is in the db
+//login - check if email is in the db and if the user has signed - note the syntax to rename the id in the signatures table
 module.exports.findUser = (email) => {
-    return db.query(`SELECT * FROM users WHERE email=$1`, [email]);
+    return db.query(
+        `SELECT users.*, signatures.id as signature_id FROM users LEFT JOIN signatures ON users.id=signatures.user_id WHERE email=$1`,
+        [email]
+    );
 };
 
 //get all petition signers

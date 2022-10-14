@@ -11,6 +11,7 @@ body {
     width: 100vw;
     height: 100vh;
     color: black;
+    position: relative;
 }
 
 a {
@@ -27,6 +28,14 @@ h1 {
 h1 > span {
     font-weight: 700;
     font-style: italic;
+}
+
+#copyright {
+    position: absolute;
+    bottom: 0;
+    right: 10px;
+    font-size: 0.8em;
+    opacity: 0.6;
 }
 
 .image-container {
@@ -179,4 +188,34 @@ button {
 #signers-count {
     font-size: 1.2em;
     font-weight: 400;
+}
+
+@media screen and (min-width: 320px) and (max-width: 768px) {
+    body {
+        height: auto;
+    }
+
+    main {
+        display: flex;
+        flex-direction: column;
+        gap: 2vh;
+    }
+
+    .image-container {
+        position: relative;
+        width: 33vw;
+        height: auto;
+    }
+
+    .image-container > img {
+        width: 100%;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        width: 100vw;
+        height: auto;
+        padding: 0 3vw 5vh 3vw;
+    }
 }
