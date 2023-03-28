@@ -1,8 +1,9 @@
 # 🌶🍓 Just as Tasty - Petition website
 
-## Live at:
+<!-- ## Live at:
 
 https://justastasty.herokuapp.com/
+-->
 
 ## Overview
 
